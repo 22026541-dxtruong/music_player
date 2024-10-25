@@ -1,37 +1,56 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import {Tabs} from "expo-router";
+import React from "react";
+import {Ionicons} from "@expo/vector-icons";
+import {View} from "react-native";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
 
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+const TabsLayout = () => {
+    const inset = useSafeAreaInsets();
+    return (
+        <View style={{flex: 1, paddingTop: inset.top}}>
+            <Tabs
+                screenOptions={{
+                    headerShown: false,
+                }}
+            >
+                <Tabs.Screen
+                    name="index"
+                    options={{
+                        title: "Home",
+                        tabBarIcon: ({color, focused}) => (
+                            <Ionicons name="home" size={24} color={focused ? color : "gray"}/>
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="search"
+                    options={{
+                        title: "Search",
+                        tabBarIcon: ({color, focused}) => (
+                            <Ionicons
+                                name="search-sharp"
+                                size={24}
+                                color={focused ? color : "gray"}
+                            />
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="library"
+                    options={{
+                        title: "Library",
+                        tabBarIcon: ({color, focused}) => (
+                            <Ionicons
+                                name="library"
+                                size={24}
+                                color={focused ? color : "gray"}
+                            />
+                        ),
+                    }}
+                />
+            </Tabs>
+        </View>
+    );
+};
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
-  );
-}
+export default TabsLayout;
