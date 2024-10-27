@@ -1,10 +1,10 @@
 import React from "react";
 import {FlatList, View} from "react-native";
-import fakeData from "@/assets/data/fake.json";
 import TrackListItem from "./TrackListItem";
+import {Track} from "@/hooks/useAudio";
 
 type Props = {
-    tracks: any[]
+    tracks: Track[]
 }
 
 const TrackList = ({tracks}: Props) => {
@@ -13,11 +13,11 @@ const TrackList = ({tracks}: Props) => {
             data={tracks}
             contentContainerStyle={{paddingBottom: 64}}
             scrollEnabled={false}
+            keyExtractor={(item) => item.id.toString()}
             contentInsetAdjustmentBehavior="automatic"
             ItemSeparatorComponent={() => <View style={{height: 5}}/>}
-            keyExtractor={(item) => item.title}
             renderItem={({item: track}) => (
-                <TrackListItem track={{...track, image: track.artwork}}/>
+                <TrackListItem track={track} />
             )}
         />
     );
