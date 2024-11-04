@@ -1,20 +1,13 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { Audio } from "expo-av";
 
-export type Track = {
-    id: number;
-    url: string;
-    title?: string;
-    artist?: string;
-    artwork?: string;
-    rating?: number;
-    playlist?: string[];
-};
-
 const useAudio = () => {
     const sound = useRef<Audio.Sound | null>(null);
+    const cacheAudio = useRef<{ [key: string]: Audio.Sound }>({});
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+    const [currentSong, setCurrentSong] = useState<Song | null>(null);
+    const [currentSongIndex, setCurrentSongIndex] = useState<number | null>(null);
+    const [playedSongs, setPlayedSongs] = useState<Song[]>([]);
 
     useEffect(() => {
         const setAudioMode = async () => {
@@ -36,20 +29,69 @@ const useAudio = () => {
         };
     }, []);
 
-    const loadSound = async (newTrack: Track) => {
+    const loadSound = useCallback(async (newSong: Song) => {
+        setCurrentSong(newSong);
         if (sound.current) {
             await sound.current.unloadAsync();
         }
-        sound.current = new Audio.Sound();
-        await sound.current.loadAsync({ uri: newTrack.url });
-    };
+        if (cacheAudio.current[newSong.file_path]) {
+            sound.current = cacheAudio.current[newSong.file_path];
+        } else {
+            sound.current = new Audio.Sound();
+            cacheAudio.current[newSong.file_path] = sound.current;
+        }
+        await sound.current.loadAsync({ uri: newSong.file_path });
+        const status = await sound.current.getStatusAsync();
+        newSong.duration = status.isLoaded ? status.durationMillis : 0;
+    }, []);
 
-    const play = useCallback(async (newTrack: Track) => {
-        await loadSound(newTrack)
+    const getCurrentPosition = useCallback(async () => {
+        if (sound.current) {
+            const status = await sound.current.getStatusAsync();
+            return (status.isLoaded) ? status.positionMillis : 0;
+        }
+        return 0;
+    }, []);
+
+    const setPosition = useCallback(async (position: number) => {
+        if (sound.current) {
+            await sound.current.setPositionAsync(position);
+        }
+    }, []);
+
+    const play = useCallback(async (newSong: Song) => {
+        await loadSound(newSong)
         await sound.current?.playAsync()
-        setCurrentTrack(newTrack)
         setIsPlaying(true)
-    }, [currentTrack]);
+
+        setPlayedSongs(prev => {
+            const updatedList = [...prev];
+            const songIndex = updatedList.findIndex(song => song.file_path === newSong.file_path);
+
+            if (songIndex === -1) {
+                updatedList.push(newSong);
+                setCurrentSongIndex(updatedList.length - 1);
+            } else {
+                setCurrentSongIndex(songIndex);
+            }
+
+            return updatedList;
+        });
+    }, [loadSound]);
+
+    const playNext = useCallback(async () => {
+        if (currentSongIndex !== null && currentSongIndex < playedSongs.length - 1) {
+            const nextSong = playedSongs[currentSongIndex + 1];
+            await play(nextSong);
+        }
+    }, [currentSongIndex, playedSongs, play]);
+
+    const playPrevious = useCallback(async () => {
+        if (currentSongIndex !== null && currentSongIndex > 0) {
+            const previousSong = playedSongs[currentSongIndex - 1];
+            await play(previousSong);
+        }
+    }, [currentSongIndex, playedSongs, play]);
 
     const pause = useCallback(async () => {
         if (sound.current) {
@@ -58,23 +100,33 @@ const useAudio = () => {
         }
     }, []);
 
-    const rewind = useCallback(async (seconds: number) => {
+    const resume = useCallback(async () => {
         if (sound.current) {
-            const status = await sound.current.getStatusAsync();
-            if (status.isLoaded) {
-                const newPosition = Math.max(0, status.positionMillis - seconds * 1000);
-                await sound.current.setPositionAsync(newPosition);
-            }
+            await sound.current.playAsync();
+            setIsPlaying(true);
         }
-    }, []);
+    }, [])
+
+    const toggleRepeat = useCallback(async (isRepeating: boolean) => {
+        if (isRepeating) {
+            await sound.current?.setIsLoopingAsync(true);
+        } else {
+            await sound.current?.setIsLoopingAsync(false);
+        }
+    }, [getCurrentPosition]);
 
     return useMemo(() => ({
-        currentTrack,
+        currentSong,
+        toggleRepeat,
         play,
+        playNext,
+        playPrevious,
         pause,
-        rewind,
+        resume,
         isPlaying,
-    }), [currentTrack, isPlaying]);
+        getCurrentPosition,
+        setPosition
+    }), [currentSong, isPlaying, playNext, playPrevious, play, pause, resume, getCurrentPosition, setPosition]);
 };
 
 export default useAudio;

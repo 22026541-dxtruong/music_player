@@ -7,7 +7,6 @@ export const defaultStyle = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'column',
-        justifyContent: 'center',
         padding: dimensions.padding,
         backgroundColor: colors.background,
         gap: 10
@@ -15,7 +14,8 @@ export const defaultStyle = StyleSheet.create({
     header: {
         color: colors.primary,
         fontSize: fonts.lg,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        width: 100
     },
     title: {
         color: colors.title,

@@ -1,9 +1,14 @@
 import React from 'react'
-import {Text} from 'react-native'
+import {View} from 'react-native'
+import {useSafeAreaInsets} from "react-native-safe-area-context";
+import {defaultStyle} from "@/constants/styles";
 
 const AlbumScreen = () => {
+    const inset = useSafeAreaInsets()
     return (
-        <Text>AlbumScreen</Text>
+        <View style={{...defaultStyle.container, paddingTop: inset.top}}>
+
+        </View>
     )
 }
 

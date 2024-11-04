@@ -1,9 +1,16 @@
 import React from 'react'
-import {Text} from 'react-native'
+import {ScrollView, Text, View} from 'react-native'
+import FloatingPlayer from "@/components/FloatingPlayer";
+import {defaultStyle} from "@/constants/styles";
 
 const LibraryScreen = () => {
     return (
-        <Text>LibraryScreen</Text>
+        <View style={defaultStyle.container}>
+            <ScrollView style={{flex: 1}}>
+                <Text>LibraryScreen</Text>
+            </ScrollView>
+            <FloatingPlayer />
+        </View>
     )
 }
 

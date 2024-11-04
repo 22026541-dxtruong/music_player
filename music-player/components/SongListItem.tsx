@@ -3,33 +3,26 @@ import {Pressable, StyleSheet, Text, View,} from "react-native";
 import {Image} from "expo-image";
 import {defaultStyle} from "@/constants/styles";
 import favicon from "@/assets/images/favicon.png";
-import {Track} from "@/hooks/useAudio";
 import {useAudioContext} from "@/context/AudioContext";
 
 type Props = {
-    track: Track
+    song: Song
 };
 
-const TrackListItem = ({track}: Props) => {
+const SongListItem = ({song}: Props) => {
     const audioContext = useAudioContext()
     return (
-        <Pressable style={styles.container} onPress={() => {
-            audioContext.play(track).catch(console.error)
+        <Pressable style={styles.container} disabled={song.song_id === audioContext.currentSong?.song_id} onPress={() => {
+            audioContext.play(song).catch(console.error)
         }}>
             <Image
-                source={track.artwork ? {uri: track.artwork} : favicon}
+                source={song.image ? {uri: song.image} : favicon}
                 priority="normal"
-                style={{...styles.image, opacity: track.id === audioContext.currentTrack?.id ? 0.6 : 1}}
+                style={{...styles.image, opacity: song.song_id === audioContext.currentSong?.song_id ? 0.6 : 1}}
             />
             <View style={styles.songAndArtist}>
-                <Text numberOfLines={1} style={defaultStyle.title}>
-                    {track.title}
-                </Text>
-                {track.artist && (
-                    <Text numberOfLines={1} style={defaultStyle.subtitle}>
-                        {track.artist}
-                    </Text>
-                )}
+                <Text numberOfLines={1} style={defaultStyle.title}>{song.title}</Text>
+                <Text numberOfLines={1} style={defaultStyle.subtitle}>{song.artist_id}</Text>
             </View>
         </Pressable>
     );
@@ -53,4 +46,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default TrackListItem;
+export default SongListItem;

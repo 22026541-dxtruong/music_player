@@ -1,23 +1,23 @@
+import React from 'react';
 import {Stack} from "expo-router";
-import React from "react";
 
-const SongsLayout = () => {
+const PlaylistLayout = () => {
     return (
         <Stack>
             <Stack.Screen
                 name="index"
                 options={{
-                    headerTitle: "Songs",
+                    headerTitle: "Playlist",
                 }}
             />
             <Stack.Screen
-                name='[song]'
+                name='[playlist]'
                 options={{
                     headerShown: false
                 }}
             />
         </Stack>
     );
-};
+}
 
-export default SongsLayout;
+export default PlaylistLayout;

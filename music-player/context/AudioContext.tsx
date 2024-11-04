@@ -1,12 +1,17 @@
-import React, { createContext, useContext } from 'react';
-import useAudio, { Track } from '@/hooks/useAudio';
+import React, {createContext, useContext} from 'react';
+import useAudio from '@/hooks/useAudio';
 
 type AudioContextType = {
-    currentTrack: Track | null;
-    play: (newTrack: Track) => Promise<void>;
+    currentSong: Song | null;
+    toggleRepeat: (isRepeating: boolean) => void;
+    play: (newTrack: Song) => Promise<void>;
     pause: () => Promise<void>;
-    rewind: (seconds: number) => Promise<void>;
+    playNext: () => Promise<void>;
+    playPrevious: () => Promise<void>;
+    resume: () => Promise<void>;
     isPlaying: boolean;
+    getCurrentPosition: () => Promise<number>;
+    setPosition: (position: number) => Promise<void>;
 };
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
