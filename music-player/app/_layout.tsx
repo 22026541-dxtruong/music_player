@@ -12,7 +12,7 @@ const RootLayout = () => {
             >
                 <Stack.Screen name="(tabs)"/>
                 <Stack.Screen name="artists"/>
-                <Stack.Screen name="album/[index]"/>
+                <Stack.Screen name="album/[index]" options={{ headerShown: true}}/>
                 <Stack.Screen name="genres/index"/>
                 <Stack.Screen name="genres/[genre]"/>
                 <Stack.Screen name="songs"/>

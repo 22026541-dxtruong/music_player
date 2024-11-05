@@ -67,6 +67,8 @@ func RegisterRoutes() {
 	http.HandleFunc("/search/artists", handlers.SearchArtists)
 	//GET http://localhost:8080/search/albums?query=Love
     http.HandleFunc("/search/albums", handlers.SearchAlbums)
+    //GET http://localhost:8080/search/songs?query=love
+    http.HandleFunc("/search/songs", handlers.SearchSongs)
 	//GET http://localhost:8080/search/songs/album?album_id=1&query=Summer
     http.HandleFunc("/search/songs/album", handlers.SearchSongsInAlbum)
 	//GET http://localhost:8080/search/songs/playlist?playlist_id=2&query=Happy

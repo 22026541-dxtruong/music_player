@@ -7,20 +7,18 @@ const useFetch = <T>(url: string) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<FetchError | null>(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(url);
-                setData(response.data);
-            } catch (error: any) {
-                setError(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData().catch(console.error);
-    }, [url]);
+    const fetchData = async (searchTerm?: string) => {
+        try {
+            const response = await axios.get(url, {
+                params: searchTerm ? { query: searchTerm } : {},
+            });
+            setData(response.data);
+        } catch (error: any) {
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const postData = async (postData: any) => {
         setLoading(true);
@@ -34,7 +32,16 @@ const useFetch = <T>(url: string) => {
         }
     };
 
-    return { data, loading, error, postData };
+    useEffect(() => {
+        fetchData().catch(console.error);
+    }, [url]);
+
+    const search = (searchTerm: string) => {
+        setLoading(true);
+        fetchData(searchTerm).catch(console.error);
+    };
+
+    return { data, loading, error, postData, search };
 };
 
 export default useFetch;

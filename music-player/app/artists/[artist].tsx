@@ -1,8 +1,7 @@
-import React, {useRef, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {FlatList, Pressable, StyleSheet, Text, View} from 'react-native'
-import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {defaultStyle} from "@/constants/styles";
-import {useLocalSearchParams} from "expo-router";
+import {useLocalSearchParams, useNavigation} from "expo-router";
 import {Image} from "expo-image";
 import {LinearGradient} from "expo-linear-gradient";
 import PagerView from "react-native-pager-view";
@@ -14,13 +13,19 @@ import { BASE_URL } from '@/constants/constants';
 import AlbumListItem from "@/components/AlbumListItem";
 
 const ArtistScreen = () => {
-    const inset = useSafeAreaInsets()
     const {artist} = useLocalSearchParams<{ artist: string }>()
     const { data: dataArtists } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${artist}`)
     const { data: dataSongs } = useFetch<Song[]>(BASE_URL + `songs/by_artist?artist_id=${artist}`)
     const { data: dataAlbums } = useFetch<Album[]>(BASE_URL + `albums/by_artist?artist_id=${artist}`)
     const [currentPage, setCurrentPage] = useState(0);
     const pagerRef = useRef<PagerView>(null);
+    const navigation = useNavigation()
+
+    useEffect(() => {
+        navigation.setOptions({
+            title: dataArtists?.name || "Artist",
+        })
+    }, [dataArtists])
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -28,7 +33,7 @@ const ArtistScreen = () => {
     };
 
     return (
-        <View style={{...defaultStyle.container, paddingTop: inset.top}}>
+        <View style={{...defaultStyle.container}}>
             <View style={styles.header}>
                 <Image style={styles.image}
                        source={{uri: dataArtists?.image}}
@@ -65,13 +70,13 @@ const ArtistScreen = () => {
                 onPageSelected={e => setCurrentPage(e.nativeEvent.position)}
             >
                 <View key="1" style={styles.page}>
-                    {dataArtists ? (
+                    {dataSongs ? (
                         <FlatList
                             showsVerticalScrollIndicator={false}
                             keyExtractor={(item) => item.song_id.toString()}
                             ItemSeparatorComponent={() => <View style={{height: 5}}/>}
                             data={dataSongs}
-                            renderItem={({item}) => <SongListItem song={item}/>}/>
+                            renderItem={({item}) => <SongListItem song={item} artist={dataArtists}/>}/>
                     ) : <Text>No songs found</Text>}
                 </View>
                 <View key="2" style={styles.page}>

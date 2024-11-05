@@ -190,7 +190,7 @@ func GetSongsByArtistId(w http.ResponseWriter, r *http.Request) {
     }
 
     rows, err := db.DB.Query(`
-        SELECT song_id, title, album_id, duration, created_at, file_path, image
+        SELECT song_id, title, album_id, artist_id, duration, created_at, file_path, image
         FROM song
         WHERE artist_id = ?`, artistID)
     if err != nil {
@@ -202,7 +202,7 @@ func GetSongsByArtistId(w http.ResponseWriter, r *http.Request) {
     var songs []models.Song
     for rows.Next() {
         var song models.Song
-        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
+        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }

@@ -12,9 +12,6 @@ const ArtistLayout = () => {
             />
             <Stack.Screen
                 name='[artist]'
-                options={{
-                    headerShown: false
-                }}
             />
         </Stack>
     );

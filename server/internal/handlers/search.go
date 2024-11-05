@@ -15,7 +15,7 @@ func SearchArtists(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    rows, err := db.DB.Query("SELECT artist_id, name FROM artist WHERE name LIKE ?", "%"+query+"%")
+    rows, err := db.DB.Query("SELECT artist_id, name, image FROM artist WHERE name LIKE ?", "%"+query+"%")
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -25,7 +25,7 @@ func SearchArtists(w http.ResponseWriter, r *http.Request) {
     var artists []models.Artist
     for rows.Next() {
         var artist models.Artist
-        if err := rows.Scan(&artist.ArtistID, &artist.Name); err != nil {
+        if err := rows.Scan(&artist.ArtistID, &artist.Name, &artist.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
@@ -43,7 +43,7 @@ func SearchAlbums(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    rows, err := db.DB.Query("SELECT album_id, title FROM album WHERE title LIKE ?", "%"+query+"%")
+    rows, err := db.DB.Query("SELECT album_id, title, artist_id, image FROM album WHERE title LIKE ?", "%"+query+"%")
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -53,7 +53,7 @@ func SearchAlbums(w http.ResponseWriter, r *http.Request) {
     var albums []models.Album
     for rows.Next() {
         var album models.Album
-        if err := rows.Scan(&album.AlbumID, &album.Title); err != nil {
+        if err := rows.Scan(&album.AlbumID, &album.Title, &album.ArtistID, &album.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
@@ -62,6 +62,34 @@ func SearchAlbums(w http.ResponseWriter, r *http.Request) {
 
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(albums)
+}
+
+func SearchSongs(w http.ResponseWriter, r *http.Request) {
+    query := r.URL.Query().Get("query")
+    if query == "" {
+        http.Error(w, "query is required", http.StatusBadRequest)
+        return
+    }
+
+    rows, err := db.DB.Query("SELECT song_id, title, album_id, artist_id, duration, created_at, file_path, image FROM song WHERE title LIKE ?", "%"+query+"%")
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    var songs []models.Song
+    for rows.Next() {
+        var song models.Song
+        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        songs = append(songs, song)
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(songs)
 }
 
 func SearchSongsInAlbum(w http.ResponseWriter, r *http.Request) {

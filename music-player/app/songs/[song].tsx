@@ -8,9 +8,12 @@ import {Image} from "expo-image";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
 import {formatTime} from "@/utils/formatTime";
+import {BASE_URL} from "@/constants/constants";
+import useFetch from "@/hooks/useFetch";
 
 const SongScreen = () => {
     const audioContext = useAudioContext()
+    const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${audioContext.currentSong?.artist_id}`)
     const inset = useSafeAreaInsets()
     const [sliderValue, setSliderValue] = useState(0);
     const [isRepeating, setIsRepeating] = useState(false);
@@ -59,7 +62,7 @@ const SongScreen = () => {
                             {audioContext.currentSong?.title}
                         </Text>
                         <Text numberOfLines={1} style={defaultStyle.subtitle}>
-                            {audioContext.currentSong?.artist_id}
+                            {dataArtist?.name}
                         </Text>
                     </View>
                     <Pressable>
