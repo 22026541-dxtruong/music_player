@@ -8,7 +8,7 @@ import (
 )
 
 func GetGenres(w http.ResponseWriter, r *http.Request) {
-    rows, err := db.DB.Query("SELECT genre_id, name FROM genre")
+    rows, err := db.DB.Query("SELECT genre_id, name, content, image FROM genre")
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -18,7 +18,7 @@ func GetGenres(w http.ResponseWriter, r *http.Request) {
     var genres []models.Genre
     for rows.Next() {
         var genre models.Genre
-        if err := rows.Scan(&genre.GenreID, &genre.Name); err != nil {
+        if err := rows.Scan(&genre.GenreID, &genre.Name, &genre.Content, &genre.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }

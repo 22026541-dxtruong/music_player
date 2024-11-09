@@ -7,12 +7,14 @@ import {defaultStyle} from "@/constants/styles";
 
 type Props = {
     artist: Artist
+    onPress?: () => void
 }
 
-const ArtistListItem = ({artist}: Props) => {
+const ArtistListItem = ({artist, onPress}: Props) => {
     return (
         <Pressable style={styles.container} onPress={() => {
             router.push(`/artists/${artist.artist_id}`)
+            onPress?.()
         }}>
             <Image
                 source={artist.image ? {uri: artist.image} : favicon}

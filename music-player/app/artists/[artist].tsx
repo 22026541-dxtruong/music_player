@@ -1,5 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react'
-import {FlatList, Pressable, StyleSheet, Text, View} from 'react-native'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
+import {ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View} from 'react-native'
 import {defaultStyle} from "@/constants/styles";
 import {useLocalSearchParams, useNavigation} from "expo-router";
 import {Image} from "expo-image";
@@ -15,8 +15,8 @@ import AlbumListItem from "@/components/AlbumListItem";
 const ArtistScreen = () => {
     const {artist} = useLocalSearchParams<{ artist: string }>()
     const { data: dataArtists } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${artist}`)
-    const { data: dataSongs } = useFetch<Song[]>(BASE_URL + `songs/by_artist?artist_id=${artist}`)
-    const { data: dataAlbums } = useFetch<Album[]>(BASE_URL + `albums/by_artist?artist_id=${artist}`)
+    const { data: dataSongs, loading: loadingSongs } = useFetch<Song[]>(BASE_URL + `songs/by_artist?artist_id=${artist}`)
+    const { data: dataAlbums, loading: loadingAlbums } = useFetch<Album[]>(BASE_URL + `albums/by_artist?artist_id=${artist}`)
     const [currentPage, setCurrentPage] = useState(0);
     const pagerRef = useRef<PagerView>(null);
     const navigation = useNavigation()
@@ -26,6 +26,34 @@ const ArtistScreen = () => {
             title: dataArtists?.name || "Artist",
         })
     }, [dataArtists])
+
+    const renderSongList = useCallback(() => {
+        if (loadingSongs) return <ActivityIndicator size={"large"} color={"blue"}/>;
+        if (!dataSongs) return <Text>No songs found</Text>;
+         return (
+             <FlatList
+                showsVerticalScrollIndicator={false}
+                keyExtractor={(item) => item.song_id.toString()}
+                ItemSeparatorComponent={() => <View style={{height: 5}}/>}
+                data={dataSongs}
+                renderItem={({item}) => <SongListItem song={item} artist={dataArtists}/>}
+            />
+         )
+    }, [dataSongs, loadingSongs])
+
+    const renderAlbumList = useCallback(() => {
+        if (loadingAlbums) return <ActivityIndicator size={"large"} color={"blue"} />
+        if (!dataAlbums) return <Text>No albums found</Text>
+        return (
+            <FlatList
+                showsVerticalScrollIndicator={false}
+                keyExtractor={(item) => item.album_id.toString()}
+                ItemSeparatorComponent={() => <View style={{height: 5}}/>}
+                data={dataAlbums}
+                renderItem={({item}) => <AlbumListItem album={item}/>}
+            />
+        )
+    }, [dataAlbums, loadingAlbums])
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -70,24 +98,10 @@ const ArtistScreen = () => {
                 onPageSelected={e => setCurrentPage(e.nativeEvent.position)}
             >
                 <View key="1" style={styles.page}>
-                    {dataSongs ? (
-                        <FlatList
-                            showsVerticalScrollIndicator={false}
-                            keyExtractor={(item) => item.song_id.toString()}
-                            ItemSeparatorComponent={() => <View style={{height: 5}}/>}
-                            data={dataSongs}
-                            renderItem={({item}) => <SongListItem song={item} artist={dataArtists}/>}/>
-                    ) : <Text>No songs found</Text>}
+                    {renderSongList()}
                 </View>
                 <View key="2" style={styles.page}>
-                    {dataAlbums ? (
-                        <FlatList
-                            showsVerticalScrollIndicator={false}
-                            keyExtractor={(item) => item.album_id.toString()}
-                            ItemSeparatorComponent={() => <View style={{height: 5}}/>}
-                            data={dataAlbums}
-                            renderItem={({item}) => <AlbumListItem album={item}/>}/>
-                    ) : <Text>No songs found</Text>}
+                    {renderAlbumList()}
                 </View>
             </PagerView>
         </View>

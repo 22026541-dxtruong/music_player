@@ -10,13 +10,15 @@ import useFetch from "@/hooks/useFetch";
 type Props = {
     album: Album
     artist?: Artist
+    onPress?: () => void
 };
 
-const AlbumListItem = ({album, artist}: Props) => {
+const AlbumListItem = ({album, artist, onPress}: Props) => {
     const { data: dataArtist } = artist ? { data: artist } : useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${album.artist_id}`)
     return (
         <Pressable style={styles.container} onPress={() => {
             router.push(`/album/${album.album_id}`)
+            onPress?.()
         }}>
             <Image
                 source={album.image ? {uri: album.image} : favicon}
@@ -40,7 +42,6 @@ const styles = StyleSheet.create({
     image: {
         width: 50,
         height: 50,
-        borderRadius: 8,
     },
     songAndArtist: {
         flexDirection: "column",

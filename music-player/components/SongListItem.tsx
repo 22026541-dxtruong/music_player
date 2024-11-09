@@ -10,9 +10,10 @@ import useFetch from "@/hooks/useFetch";
 type Props = {
     song: Song
     artist?: Artist
+    onPress?: () => void
 };
 
-const SongListItem = ({song, artist}: Props) => {
+const SongListItem = ({song, artist, onPress}: Props) => {
     const audioContext = useAudioContext()
     const { data: dataArtist } = artist
         ? { data: artist }
@@ -21,6 +22,7 @@ const SongListItem = ({song, artist}: Props) => {
     return (
         <Pressable style={styles.container} disabled={song.song_id === audioContext.currentSong?.song_id} onPress={() => {
             audioContext.play(song).catch(console.error)
+            onPress?.()
         }}>
             <Image
                 source={song.image ? {uri: song.image} : favicon}
@@ -44,7 +46,7 @@ const styles = StyleSheet.create({
     image: {
         width: 50,
         height: 50,
-        borderRadius: 8,
+        borderRadius: 15,
     },
     songAndArtist: {
         flexDirection: "column",
