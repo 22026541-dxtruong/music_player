@@ -43,7 +43,7 @@ const ArtistScreen = () => {
 
     const renderAlbumList = useCallback(() => {
         if (loadingAlbums) return <ActivityIndicator size={"large"} color={"blue"} />
-        if (!dataAlbums) return <Text>No albums found</Text>
+        if (!dataAlbums) return <Text style={{ textAlign: "center", ...defaultStyle.title }}>No albums found</Text>
         return (
             <FlatList
                 showsVerticalScrollIndicator={false}

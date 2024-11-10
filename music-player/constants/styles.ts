@@ -25,5 +25,12 @@ export const defaultStyle = StyleSheet.create({
     subtitle: {
         color: colors.subtitle,
         fontSize: fonts.xs
+    },
+    error: {
+        color: colors.error,
+        textAlign: "center",
+        fontWeight: 'bold',
+        fontSize: fonts.sm,
+        flex: 1
     }
 })

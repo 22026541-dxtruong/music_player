@@ -19,6 +19,7 @@ import GenreListItem from "@/components/GenreListItem";
 import {router} from "expo-router";
 import CircleArtist from "@/components/CircleArtist";
 import SquareAlbum from "@/components/SquareAlbum";
+import FloatingDownload from "@/components/FloatingDownload";
 
 const SearchScreen = () => {
     const [showSearchBar, setShowSearchBar] = useState(false)
@@ -28,7 +29,7 @@ const SearchScreen = () => {
     const {data: dataAlbum, loading: loadingAlbum, error: errorAlbum} = useFetch<Album[]>(BASE_URL + 'albums')
 
     const renderGenres = useCallback(() => {
-        if (errorGenre) return <Text style={{...defaultStyle.title, color: 'red'}}>Genres: {errorGenre.message}</Text>
+        if (errorGenre) return <Text style={defaultStyle.error}>Genres: {errorGenre.message}</Text>
         if (loadingGenre) return <ActivityIndicator size={"large"} color={"blue"}/>
         return (
             <FlatList
@@ -46,7 +47,7 @@ const SearchScreen = () => {
 
     const renderArtists = useCallback(() => {
         if (errorArtist) return <Text
-            style={{...defaultStyle.title, color: 'red'}}>Artists: {errorArtist.message}</Text>
+            style={defaultStyle.error}>Artists: {errorArtist.message}</Text>
         if (loadingArtist) return <ActivityIndicator size={"large"} color={"blue"}/>
         return (
             <FlatList
@@ -63,7 +64,7 @@ const SearchScreen = () => {
     }, [dataArtist, loadingArtist])
 
     const renderAlbums = useCallback(() => {
-        if (errorAlbum) return <Text style={{...defaultStyle.title, color: 'red'}}>Albums: {errorAlbum.message}</Text>
+        if (errorAlbum) return <Text style={defaultStyle.error}>Albums: {errorAlbum.message}</Text>
         if (loadingAlbum) return <ActivityIndicator size={"large"} color={"blue"}/>
         return (
             <FlatList
@@ -91,6 +92,7 @@ const SearchScreen = () => {
                     <Text>Search artist, album and song</Text>
                 </View>
             </TouchableOpacity>
+            <FloatingDownload />
             <ScrollView showsVerticalScrollIndicator={false} style={{flex: 1}}>
                 <View style={styles.headerList}>
                     <Text style={defaultStyle.header}>Artists</Text>

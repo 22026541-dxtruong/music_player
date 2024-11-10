@@ -10,6 +10,9 @@ import Slider from "@react-native-community/slider";
 import {formatTime} from "@/utils/formatTime";
 import {BASE_URL} from "@/constants/constants";
 import useFetch from "@/hooks/useFetch";
+import Feather from "@expo/vector-icons/Feather";
+import FloatingDownload from "@/components/FloatingDownload";
+import {useDownloadContext} from "@/context/DownloadContext";
 
 const SongScreen = () => {
     const audioContext = useAudioContext()
@@ -17,6 +20,21 @@ const SongScreen = () => {
     const inset = useSafeAreaInsets()
     const [sliderValue, setSliderValue] = useState(0);
     const [isRepeating, setIsRepeating] = useState(false);
+
+    const { downloadFile } = useDownloadContext();
+
+    const handleDownload = async () => {
+        const song = audioContext.currentSong
+
+        if (!song) {
+            return
+        }
+        try {
+            await downloadFile(song)
+        } catch (error: any) {
+            console.log(error)
+        }
+    };
 
     useEffect(() => {
         const interval = setInterval(async () => {
@@ -47,6 +65,7 @@ const SongScreen = () => {
                     <FontAwesome6 name="ellipsis-vertical" size={20} color="black"/>
                 </Pressable>
             </View>
+            <FloatingDownload />
             <View style={styles.contentContainer}>
                 <View style={styles.imageContainer}>
                     <Image
@@ -65,9 +84,14 @@ const SongScreen = () => {
                             {dataArtist?.name}
                         </Text>
                     </View>
-                    <Pressable>
-                        <FontAwesome6 name="heart" size={20} color="black"/>
-                    </Pressable>
+                    <View style={styles.options}>
+                        <Pressable onPress={() => handleDownload()}>
+                            <Feather name="download" size={24} color="black" />
+                        </Pressable>
+                        <Pressable>
+                            <FontAwesome6 name="heart" size={20} color="black"/>
+                        </Pressable>
+                    </View>
                 </View>
                 <Slider
                     style={styles.slider}
@@ -159,6 +183,11 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         justifyContent: "space-between",
         gap: 5,
+    },
+    options: {
+        flexDirection: "row",
+        gap: 10,
+        alignItems: "center"
     },
     slider: {
         width: '100%'

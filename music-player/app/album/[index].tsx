@@ -17,6 +17,7 @@ const AlbumScreen = () => {
     useEffect(() => {
         navigation.setOptions({
             title: dataAlbum?.title || 'Album',
+            // header: () => null
         })
     }, [dataAlbum])
     const search = useSearch({

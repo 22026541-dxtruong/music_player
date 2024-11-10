@@ -62,6 +62,8 @@ func RegisterRoutes() {
 
 	//GET http://localhost:8080/genres
 	http.HandleFunc("/genres", handlers.GetGenres)
+	//GET http://localhost:8080/genres?genre_id=1
+	http.HandleFunc("/genres/by_id", handlers.GetGenreById)
 
     //GET http://localhost:8080/search?query=love
     http.HandleFunc("/search", handlers.SearchAll)

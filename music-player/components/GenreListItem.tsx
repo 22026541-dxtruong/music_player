@@ -12,7 +12,7 @@ type Props = {
 const GenreListItem = ({genre}: Props) => {
     const backgroundColor = useMemo(() => generateGenreColor(genre.genre_id), [genre.genre_id]);
     return (
-        <Pressable onPress={() => router.push(`/genres/${genre.genre_id}`)} style={{...styles.container, backgroundColor: backgroundColor}}>
+        <Pressable onPress={() => router.push(`/genre/${genre.genre_id}`)} style={{...styles.container, backgroundColor: backgroundColor}}>
             <Text style={styles.text}>{genre.name}</Text>
             <Image
                 source={{uri: genre.image}}
