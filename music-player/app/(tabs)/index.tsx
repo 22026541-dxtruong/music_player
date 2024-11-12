@@ -14,6 +14,7 @@ import FloatingDownload from "@/components/FloatingDownload";
 const HomeScreen = () => {
     const { data: dataArtist, loading: loadingArtist, error } = useFetch<Artist[]>(BASE_URL + 'artists')
     const { data: dataSongs, loading } = useFetch<Song[]>(BASE_URL + 'songs')
+
     return (
         <View style={defaultStyle.container}>
             <View style={styles.header}>

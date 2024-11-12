@@ -6,77 +6,82 @@ import (
 )
 
 func RegisterRoutes() {
-	//GET http://localhost:8080/users
+    // POST /register
+    http.HandleFunc("/register", handlers.Register)
+    // POST /login
+    http.HandleFunc("/login", handlers.Login)
+
+	//GET /users
     http.HandleFunc("/users", handlers.GetUsers)
-	//GET http://localhost:8080/users?user_id=1
+	//GET /users?user_id=1
 	http.HandleFunc("/users/by_id", handlers.GetUserByID)
 
-	//GET http://localhost:8080/artists
+	//GET /artists
     http.HandleFunc("/artists", handlers.GetArtists)
-	//GET http://localhost:8080/artists?artist_id=1
+	//GET /artists?artist_id=1
 	http.HandleFunc("/artists/by_id", handlers.GetArtistByID)
 
-	//GET http://localhost:8080/albums
+	//GET /albums
     http.HandleFunc("/albums", handlers.GetAlbums)
-	//GET http://localhost:8080/albums?album_id=1
+	//GET /albums?album_id=1
 	http.HandleFunc("/albums/by_id", handlers.GetAlbumByID)
-    //GET http://localhost:8080/albums/by_artist?artist_id=1
+    //GET /albums/by_artist?artist_id=1
     http.HandleFunc("/albums/by_artist", handlers.GetAlbumsByArtistId)
 
-	//GET http://localhost:8080/songs
+	//GET /songs
     http.HandleFunc("/songs", handlers.GetSongs)
-    //GET http://localhost:8080/songs/by_artist?artist_id=1
+    //GET /songs/by_artist?artist_id=1
     http.HandleFunc("/songs/by_artist", handlers.GetSongsByArtistId)
-    //GET http://localhost:8080/songs/by_id?song_id=1
+    //GET /songs/by_id?song_id=1
     http.HandleFunc("/songs/by_id", handlers.GetSongByID)
-	//GET http://localhost:8080/songs?genre_id=1
+	//GET /songs?genre_id=1
 	http.HandleFunc("/songs/by_genre", handlers.GetSongsByGenre)
-	//GET http://localhost:8080/songs?album_id=1
+	//GET /songs?album_id=1
 	http.HandleFunc("/songs/by_album", handlers.GetSongsByAlbum)
-	//GET http://localhost:8080/songs?playlist_id=1
+	//GET /songs?playlist_id=1
 	http.HandleFunc("/songs/by_playlist", handlers.GetSongsByPlaylist)
 
-	//GET http://localhost:8080/playlists
+	//GET /playlists
     http.HandleFunc("/playlists", handlers.GetPlaylists)
-	//GET http://localhost:8080/playlists?user_id=1
+	//GET /playlists?user_id=1
 	http.HandleFunc("/playlists/by_user", handlers.GetPlaylistsByUserID)
-	//GET http://localhost:8080/playlists?playlist_id=1
+	//GET /playlists?playlist_id=1
 	http.HandleFunc("/playlists/by_id", handlers.GetPlaylistByID)
-	//POST http://localhost:8080/playlists/songs/add
+	//POST /playlists/songs/add
 	http.HandleFunc("/playlists/songs/add", handlers.AddSongToPlaylist)
-	//POST http://localhost:8080/playlists/create
+	//POST /playlists/create
 	http.HandleFunc("/playlists/create", handlers.CreatePlaylist)
 
-	//POST http://localhost:8080/favorites/artists/add
+	//POST /favorites/artists/add
     http.HandleFunc("/favorites/artists/add", handlers.AddFavoriteArtistByUserID)
-	//POST http://localhost:8080/favorites/songs/add
+	//POST /favorites/songs/add
     http.HandleFunc("/favorites/songs/add", handlers.AddFavoriteSongByUserID)
-	//POST http://localhost:8080/favorites/albums/add
+	//POST /favorites/albums/add
 	http.HandleFunc("/favorites/albums/add", handlers.AddFavoriteAlbumByUserID)
-	//GET http://localhost:8080/favorites/albums
+	//GET /favorites/albums
 	http.HandleFunc("/favorites/albums", handlers.GetFavoriteAlbumsByUserID)
-	//GET http://localhost:8080/favorites/artists
+	//GET /favorites/artists
     http.HandleFunc("/favorites/artists", handlers.GetFavoriteArtistsByUserID)
-	//GET http://localhost:8080/favorites/songs
+	//GET /favorites/songs
     http.HandleFunc("/favorites/songs", handlers.GetFavoriteSongsByUserID)
 
-	//GET http://localhost:8080/genres
+	//GET /genres
 	http.HandleFunc("/genres", handlers.GetGenres)
-	//GET http://localhost:8080/genres?genre_id=1
+	//GET /genres?genre_id=1
 	http.HandleFunc("/genres/by_id", handlers.GetGenreById)
 
-    //GET http://localhost:8080/search?query=love
+    //GET /search?query=love
     http.HandleFunc("/search", handlers.SearchAll)
-	//GET http://localhost:8080/search/artists?query=John
+	//GET /search/artists?query=John
 	http.HandleFunc("/search/artists", handlers.SearchArtists)
-	//GET http://localhost:8080/search/albums?query=Love
+	//GET /search/albums?query=Love
     http.HandleFunc("/search/albums", handlers.SearchAlbums)
-    //GET http://localhost:8080/search/songs?query=love
+    //GET /search/songs?query=love
     http.HandleFunc("/search/songs", handlers.SearchSongs)
-	//GET http://localhost:8080/search/songs/album?album_id=1&query=Summer
+	//GET /search/songs/album?album_id=1&query=Summer
     http.HandleFunc("/search/songs/album", handlers.SearchSongsInAlbum)
-	//GET http://localhost:8080/search/songs/playlist?playlist_id=2&query=Happy
+	//GET /search/songs/playlist?playlist_id=2&query=Happy
     http.HandleFunc("/search/songs/playlist", handlers.SearchSongsInPlaylist)
-	//GET http://localhost:8080/search/songs/genre?genre_id=1&query=love
+	//GET /search/songs/genre?genre_id=1&query=love
 	http.HandleFunc("/search/songs/genre", handlers.SearchSongsInGenre)
 }
