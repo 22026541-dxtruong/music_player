@@ -5,18 +5,24 @@ import {useLocalSearchParams, useNavigation} from "expo-router";
 import {Image} from "expo-image";
 import {LinearGradient} from "expo-linear-gradient";
 import PagerView from "react-native-pager-view";
-import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import SongListItem from "@/components/SongListItem";
 import useFetch from "@/hooks/useFetch";
 import { BASE_URL } from '@/constants/constants';
 import AlbumListItem from "@/components/AlbumListItem";
+import {useAuthContext} from "@/context/AuthContext";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import colors from "@/constants/colors";
 
 const ArtistScreen = () => {
     const {artist} = useLocalSearchParams<{ artist: string }>()
+    const { user } = useAuthContext()
     const { data: dataArtists } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${artist}`)
     const { data: dataSongs, loading: loadingSongs } = useFetch<Song[]>(BASE_URL + `songs/by_artist?artist_id=${artist}`)
     const { data: dataAlbums, loading: loadingAlbums } = useFetch<Album[]>(BASE_URL + `albums/by_artist?artist_id=${artist}`)
+    const { data: favoriteArtist } = useFetch<FavoriteArtist[]>(BASE_URL + `favorites/artists?user_id=${user?.user_id}`)
+    const { postData: addArtist } = useFetch(BASE_URL + `favorites/artists/add`)
+    const { deleteData: deleteArtist } = useFetch(BASE_URL + `favorites/artists/delete?user_id=${user?.user_id}&artist_id=${artist}`)
     const [currentPage, setCurrentPage] = useState(0);
     const pagerRef = useRef<PagerView>(null);
     const navigation = useNavigation()
@@ -60,27 +66,53 @@ const ArtistScreen = () => {
         pagerRef.current?.setPage(page);
     };
 
+    const [isFavorite, setIsFavorite] = useState(false);
+
+    useEffect(() => {
+        if (favoriteArtist) {
+            const isArtistInFavorites = favoriteArtist.some(item => item.artist_id === Number(artist));
+            setIsFavorite(isArtistInFavorites);
+        }
+    }, [favoriteArtist, artist]);
+
+    const handleAddArtist = () => {
+        addArtist({
+            user_id: user?.user_id,
+            artist_id: Number(artist),
+        }).then(() => {
+            setIsFavorite(true);
+        }).catch(error => {
+            console.error("Error adding artist:", error);
+        });
+    };
+
+    const handleDeleteArtist = () => {
+        deleteArtist().then(() => {
+            setIsFavorite(false);
+        }).catch(error => {
+            console.error("Error deleting artist:", error);
+        });
+    };
+
     return (
         <View style={{...defaultStyle.container}}>
             <View style={styles.header}>
                 <Image style={styles.image}
                        source={{uri: dataArtists?.image}}
                        priority="normal" contentFit={"cover"}/>
-                <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.8)']} style={styles.backgroundImage}/>
-                <Text style={styles.artistName} numberOfLines={1}>{dataArtists?.name || "Unknown Title"}</Text>
-            </View>
-            <View style={styles.option}>
-                <Pressable style={styles.addArtist}>
-                    <Ionicons name="person-add-outline" size={24} color="black"/>
-                    <Text>Add Artist</Text>
-                </Pressable>
-                <View style={styles.activeOption}>
-                    <Pressable>
-                        <FontAwesome6 name="shuffle" size={20} color="black"/>
-                    </Pressable>
-                    <Pressable>
-                        <FontAwesome6 name="play" size={24} color="black"/>
-                    </Pressable>
+                <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 1)']} style={styles.backgroundImage}/>
+                <View style={styles.option}>
+                    <Text style={styles.artistName} numberOfLines={1}>{dataArtists?.name || "Unknown Title"}</Text>
+                    { isFavorite ?
+                        <Pressable style={{...styles.editArtist, borderColor: 'red'}} onPress={() => handleDeleteArtist()}>
+                            <MaterialIcons name="person-off" size={24} color="red"/>
+                            <Text style={{ color: colors.error }}>Delete Artist</Text>
+                        </Pressable> :
+                        <Pressable style={{...styles.editArtist, borderColor: 'white'}} onPress={() => handleAddArtist()}>
+                            <MaterialIcons name="person-add" size={24} color="white"/>
+                            <Text style={{ color: 'white' }}>Add Artist</Text>
+                        </Pressable>
+                    }
                 </View>
             </View>
             <View style={styles.buttonContainer}>
@@ -124,20 +156,23 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0
     },
-    artistName: {
-        ...defaultStyle.header,
-        width: '100%',
-        color: 'white',
-        position: "absolute",
-        bottom: 10,
-        left: 10
-    },
     option: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center"
+        alignItems: "center",
+        gap: 10,
+        width: '100%',
+        position: "absolute",
+        bottom: 10,
+        left: 0,
+        paddingHorizontal: 10
     },
-    addArtist: {
+    artistName: {
+        ...defaultStyle.header,
+        color: 'white',
+        flex: 1
+    },
+    editArtist: {
         flexDirection: "row",
         alignItems: "center",
         gap: 10,

@@ -24,6 +24,7 @@ const useFetch = <T>(url: string) => {
         setLoading(true);
         try {
             const response = await axios.post(url, postData);
+            console.log(response.data);
             setData(response.data);
         } catch (error: any) {
             setError(error);
@@ -31,6 +32,23 @@ const useFetch = <T>(url: string) => {
             setLoading(false);
         }
     };
+
+    const deleteData = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.delete(url);
+            console.log(response.data);
+        } catch (error: any) {
+            setError(error);
+            console.error(error)
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const reFetchData = () => {
+        fetchData().catch(console.error);
+    }
 
     useEffect(() => {
         fetchData().catch(console.error);
@@ -41,7 +59,7 @@ const useFetch = <T>(url: string) => {
         fetchData(searchTerm).catch(console.error);
     };
 
-    return { data, loading, error, postData, search };
+    return { data, loading, error, postData, deleteData, search, reFetchData };
 };
 
 export default useFetch;

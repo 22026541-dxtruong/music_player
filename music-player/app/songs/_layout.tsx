@@ -7,7 +7,7 @@ const SongsLayout = () => {
             <Stack.Screen
                 name="index"
                 options={{
-                    headerTitle: "Songs",
+                    headerTitle: "Liked Songs",
                 }}
             />
             <Stack.Screen

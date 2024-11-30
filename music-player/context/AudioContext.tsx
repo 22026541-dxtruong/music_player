@@ -3,6 +3,7 @@ import useAudio from '@/hooks/useAudio';
 
 type AudioContextType = {
     currentSong: Song | null;
+    loading: boolean;
     toggleRepeat: (isRepeating: boolean) => void;
     play: (newTrack: Song) => Promise<void>;
     pause: () => Promise<void>;

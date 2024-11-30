@@ -51,6 +51,8 @@ func RegisterRoutes() {
 	http.HandleFunc("/playlists/songs/add", handlers.AddSongToPlaylist)
 	//POST /playlists/create
 	http.HandleFunc("/playlists/create", handlers.CreatePlaylist)
+	//GET /playlists/songs?playlist_id=1
+	http.HandleFunc("/playlists/songs", handlers.GetSongsByPlaylistID)
 
 	//POST /favorites/artists/add
     http.HandleFunc("/favorites/artists/add", handlers.AddFavoriteArtistByUserID)
@@ -64,6 +66,10 @@ func RegisterRoutes() {
     http.HandleFunc("/favorites/artists", handlers.GetFavoriteArtistsByUserID)
 	//GET /favorites/songs
     http.HandleFunc("/favorites/songs", handlers.GetFavoriteSongsByUserID)
+    //DELETE
+    http.HandleFunc("/favorites/artists/delete", handlers.DeleteFavoriteArtistByUserID)
+    http.HandleFunc("/favorites/songs/delete", handlers.DeleteFavoriteSongByUserID)
+    http.HandleFunc("/favorites/albums/delete", handlers.DeleteFavoriteAlbumByUserID)
 
 	//GET /genres
 	http.HandleFunc("/genres", handlers.GetGenres)

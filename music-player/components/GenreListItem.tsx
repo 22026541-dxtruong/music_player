@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {Pressable, StyleSheet, Text} from "react-native";
 import {Image} from "expo-image";
 import {defaultStyle} from "@/constants/styles";
-import {generateGenreColor} from "@/utils/generateGenreColor";
+import {generateGenreColor} from "@/utils/generateColor";
 import {router} from "expo-router";
 
 type Props = {

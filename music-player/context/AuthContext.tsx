@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import {router} from "expo-router";
 import {BASE_URL} from "@/constants/constants";
+import {useSQLiteContext} from "expo-sqlite";
 
 type AuthContextType = {
     user: User | null;
@@ -24,6 +25,7 @@ export const useAuthContext = () => {
 };
 
 const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
+    const database = useSQLiteContext()
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -33,7 +35,8 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
             const userData = await AsyncStorage.getItem('user');
             if (userData) {
                 setUser(JSON.parse(userData));
-                console.log(user)
+                console.log(userData)
+                router.replace('/')
             }
         };
         loadUserData().catch(console.error);
@@ -50,11 +53,14 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
             if (response.status === 200 && response.data) {
                 await AsyncStorage.setItem('user', JSON.stringify(response.data));
                 setUser(response.data);
+                const statement = await database.prepareAsync(`INSERT OR REPLACE INTO users (user_id, username) VALUES (?, ?)`)
+                await statement.executeAsync(response.data.user_id, response.data.username)
                 router.push('/');
             } else {
                 setError('Login failed');
             }
         } catch (err) {
+            console.error(err)
             setError('Login failed');
         } finally {
             setIsLoading(false);
@@ -76,11 +82,14 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
             if (response.status === 201 && response.data) {
                 await AsyncStorage.setItem('user', JSON.stringify(response.data));
                 setUser(response.data);
+                const statement = await database.prepareAsync(`INSERT OR REPLACE INTO users (user_id, username) VALUES (?, ?)`)
+                await statement.executeAsync(response.data.user_id, response.data.username)
                 router.replace('/');
             } else {
                 setError('Registration failed');
             }
         } catch (err) {
+            console.error(err);
             setError('Registration failed');
         } finally {
             setIsLoading(false);

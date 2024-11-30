@@ -4,6 +4,7 @@ import { Audio } from "expo-av";
 const useAudio = () => {
     const sound = useRef<Audio.Sound | null>(null);
     const cacheAudio = useRef<{ [key: string]: Audio.Sound }>({});
+    const [loading, setLoading] = useState(false)
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentSong, setCurrentSong] = useState<Song | null>(null);
     const [currentSongIndex, setCurrentSongIndex] = useState<number | null>(null);
@@ -60,8 +61,10 @@ const useAudio = () => {
     }, []);
 
     const play = useCallback(async (newSong: Song) => {
+        setLoading(true)
         await loadSound(newSong)
         await sound.current?.playAsync()
+        setLoading(false)
         setIsPlaying(true)
 
         setPlayedSongs(prev => {
@@ -117,6 +120,7 @@ const useAudio = () => {
 
     return useMemo(() => ({
         currentSong,
+        loading,
         toggleRepeat,
         play,
         playNext,
@@ -126,7 +130,7 @@ const useAudio = () => {
         isPlaying,
         getCurrentPosition,
         setPosition
-    }), [currentSong, isPlaying, playNext, playPrevious, play, pause, resume, getCurrentPosition, setPosition]);
+    }), [currentSong, isPlaying, playNext, playPrevious, play, pause, resume, getCurrentPosition, setPosition, loading]);
 };
 
 export default useAudio;

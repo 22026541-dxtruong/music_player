@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { useAudioContext } from "@/context/AudioContext";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
@@ -7,16 +7,41 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import {router} from "expo-router";
 import useFetch from "@/hooks/useFetch";
 import {BASE_URL} from "@/constants/constants";
+import Slider from "@react-native-community/slider";
 
 const FloatingPlayer = () => {
     const audioContext = useAudioContext();
     const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${audioContext.currentSong?.artist_id}`)
 
+    const [sliderValue, setSliderValue] = useState(0)
+
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            if (audioContext.currentSong) {
+                if (audioContext.currentSong?.duration) {
+                    const position = await audioContext.getCurrentPosition();
+                    setSliderValue(position);
+                } else {
+                    setSliderValue(0)
+                }
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [audioContext]);
+
+    const handleSliderChange = async (newPosition: number) => {
+        if (!audioContext.loading) {
+            setSliderValue(newPosition);
+            await audioContext.setPosition(newPosition);
+        }
+    };
+
     if (!audioContext.currentSong) return null;
 
     return (
-        <View>
-            <Pressable style={styles.container} onPress={() =>router.navigate(`/songs/${audioContext.currentSong?.song_id}`)} >
+        <View style={styles.container}>
+            <Pressable style={styles.controller} onPress={() =>router.navigate(`/songs/${audioContext.currentSong?.song_id}`)} >
                 <View style={styles.left}>
                     <Image
                         source={{ uri: audioContext.currentSong.image }}
@@ -42,22 +67,26 @@ const FloatingPlayer = () => {
                     </Pressable>
                 </View>
             </Pressable>
-            {/*<Slider*/}
-            {/*    style={styles.slider}*/}
-            {/*    minimumValue={0}*/}
-            {/*    maximumValue={audioContext.currentSong?.duration}*/}
-            {/*    value={sliderValue}*/}
-            {/*    disabled={true}*/}
-            {/*    minimumTrackTintColor="#FFFFFF"*/}
-            {/*    maximumTrackTintColor="#000000"*/}
-            {/*    thumbTintColor="transparent"*/}
-            {/*/>*/}
+            <Slider
+                style={styles.slider}
+                minimumValue={0}
+                maximumValue={!audioContext.loading ? audioContext.currentSong?.duration : 1}
+                value={sliderValue}
+                onValueChange={handleSliderChange}
+                minimumTrackTintColor="#8B5DFF"
+                maximumTrackTintColor="#000000"
+                thumbTintColor={'transparent'}
+
+            />
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
+        alignItems: 'center',
+    },
+    controller: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -80,7 +109,7 @@ const styles = StyleSheet.create({
         flex: 1
     },
     slider: {
-        width: '100%',
+        width: '110%',
         margin: 0,
         padding: 0
     },

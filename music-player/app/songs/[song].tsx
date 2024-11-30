@@ -10,9 +10,10 @@ import Slider from "@react-native-community/slider";
 import {formatTime} from "@/utils/formatTime";
 import {BASE_URL} from "@/constants/constants";
 import useFetch from "@/hooks/useFetch";
-import Feather from "@expo/vector-icons/Feather";
 import FloatingDownload from "@/components/FloatingDownload";
 import {useDownloadContext} from "@/context/DownloadContext";
+import {useSQLiteContext} from "expo-sqlite";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 const SongScreen = () => {
     const audioContext = useAudioContext()
@@ -21,16 +22,52 @@ const SongScreen = () => {
     const [sliderValue, setSliderValue] = useState(0);
     const [isRepeating, setIsRepeating] = useState(false);
 
-    const { downloadFile } = useDownloadContext();
+    const { downloadFile, deleteFile } = useDownloadContext();
+
+    const database = useSQLiteContext()
+    const [songDownloaded, setSongDownloaded] = useState<Song[]>([]);
+    useEffect(() => {
+        const fetchData = async() => {
+            try {
+                const songs: Song[] = await database.getAllAsync(`SELECT * FROM songs`)
+                setSongDownloaded(songs)
+            } catch (error: any) {
+                console.error(error)
+            }
+        }
+        fetchData().catch(console.error)
+    }, [])
+
+    const [isDownloaded, setIsDownloaded] = useState(false)
+
+    useEffect(() => {
+        if (songDownloaded) {
+            const isSongDownloaded = songDownloaded.some(item => item.song_id === audioContext.currentSong?.song_id)
+            setIsDownloaded(isSongDownloaded)
+        }
+    }, [songDownloaded, audioContext.currentSong?.song_id]);
 
     const handleDownload = async () => {
         const song = audioContext.currentSong
-
         if (!song) {
             return
         }
         try {
             await downloadFile(song)
+            setIsDownloaded(true)
+        } catch (error: any) {
+            console.log(error)
+        }
+    };
+
+    const handleDeleteDownload = async () => {
+        const song = audioContext.currentSong
+        if (!song) {
+            return
+        }
+        try {
+            await deleteFile(song)
+            setIsDownloaded(false)
         } catch (error: any) {
             console.log(error)
         }
@@ -39,17 +76,23 @@ const SongScreen = () => {
     useEffect(() => {
         const interval = setInterval(async () => {
             if (audioContext.currentSong) {
-                const position = await audioContext.getCurrentPosition();
-                setSliderValue(position);
+                if (audioContext.currentSong?.duration) {
+                    const position = await audioContext.getCurrentPosition();
+                    setSliderValue(position);
+                } else {
+                    setSliderValue(0)
+                }
             }
-        }, 0);
+        }, 1000);
 
         return () => clearInterval(interval);
     }, [audioContext]);
 
     const handleSliderChange = async (newPosition: number) => {
-        setSliderValue(newPosition);
-        await audioContext.setPosition(newPosition);
+        if (!audioContext.loading) {
+            setSliderValue(newPosition);
+            await audioContext.setPosition(newPosition);
+        }
     };
 
     return (
@@ -85,9 +128,14 @@ const SongScreen = () => {
                         </Text>
                     </View>
                     <View style={styles.options}>
-                        <Pressable onPress={() => handleDownload()}>
-                            <Feather name="download" size={24} color="black" />
-                        </Pressable>
+                        { isDownloaded ?
+                            <Pressable onPress={() => handleDeleteDownload()}>
+                                <MaterialIcons name="file-download-off" size={24} color="red" />
+                            </Pressable> :
+                            <Pressable onPress={() => handleDownload()}>
+                                <MaterialIcons name="file-download" size={24} color="black" />
+                            </Pressable>
+                        }
                         <Pressable>
                             <FontAwesome6 name="heart" size={20} color="black"/>
                         </Pressable>
@@ -96,15 +144,16 @@ const SongScreen = () => {
                 <Slider
                     style={styles.slider}
                     minimumValue={0}
-                    maximumValue={audioContext.currentSong?.duration}
+                    maximumValue={!audioContext.loading ? audioContext.currentSong?.duration : 1}
                     value={sliderValue}
                     onValueChange={handleSliderChange}
-                    minimumTrackTintColor="#FFFFFF"
+                    minimumTrackTintColor="#8B5DFF"
                     maximumTrackTintColor="#000000"
+                    thumbTintColor={'#8B5DFF'}
                 />
                 <View style={styles.time}>
                     <Text>{formatTime(sliderValue)}</Text>
-                    <Text>{formatTime(audioContext.currentSong?.duration)}</Text>
+                    <Text>{!audioContext.loading ? formatTime(audioContext.currentSong?.duration) : '--:--'}</Text>
                 </View>
                 <View style={styles.controller}>
                     <Pressable>
@@ -190,7 +239,8 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     slider: {
-        width: '100%'
+        width: '110%',
+        alignSelf: 'center'
     },
     time: {
         flexDirection: "row",

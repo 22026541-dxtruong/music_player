@@ -1,21 +1,17 @@
-import {Redirect, Tabs} from "expo-router";
+import {Tabs} from "expo-router";
 import React from "react";
 import {Ionicons} from "@expo/vector-icons";
-import {useAuthContext} from "@/context/AuthContext";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
 
 const TabsLayout = () => {
-
-    const { user } = useAuthContext()
-
-    if (!user) {
-        return <Redirect href={'/login'} />
-    }
+    const inset = useSafeAreaInsets()
 
     return (
         <Tabs
             screenOptions={{
                 headerShown: false,
             }}
+            sceneContainerStyle={{paddingTop: inset.top}}
         >
             <Tabs.Screen
                 name="index"
@@ -42,7 +38,7 @@ const TabsLayout = () => {
             <Tabs.Screen
                 name="library"
                 options={{
-                    title: "Library",
+                    title: "Your Library",
                     tabBarIcon: ({color, focused}) => (
                         <Ionicons
                             name="library"

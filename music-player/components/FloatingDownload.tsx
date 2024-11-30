@@ -17,7 +17,7 @@ const FloatingDownload = () => {
         setSliderValue(downloadContext.downloadProgress)
     }, [downloadContext.downloadProgress]);
 
-    if (!downloadContext.downloadSong) return null
+    if (!downloadContext.isDownloading) return null
 
     return (
         <View style={styles.container}>
@@ -31,28 +31,20 @@ const FloatingDownload = () => {
                     />
                     <Text numberOfLines={1} style={defaultStyle.title}>{downloadContext.downloadSong?.title}</Text>
                 </View>
-                <View style={styles.headerItem}>
-                    <Pressable onPress={() => {
-                        downloadContext.isPaused ?
-                            downloadContext.resumeDownload() :
-                            downloadContext.pauseDownload()
-                    }}>
-                        <Feather name={downloadContext.isPaused ? "play" : "pause"} size={24} color="black" />
-                    </Pressable>
-                    <Pressable onPress={downloadContext.cancelDownload}>
-                        <AntDesign name="delete" size={24} color="red" />
-                    </Pressable>
-                </View>
+                <Pressable onPress={downloadContext.cancelDownload}>
+                    <AntDesign name="delete" size={24} color="red" />
+                </Pressable>
             </View>
             <Slider
                 style={styles.slider}
                 minimumValue={0}
                 maximumValue={1}
                 value={sliderValue}
-                minimumTrackTintColor="#FFFFFF"
+                minimumTrackTintColor="#8B5DFF"
                 maximumTrackTintColor="#000000"
+                thumbTintColor={'transparent'}
             />
-            <Text>Đang tải xuống: {Math.round(sliderValue * 100)}%</Text>
+            <Text>{'Đang tải xuống:'} {Math.round(sliderValue * 100)}%</Text>
         </View>
     );
 };
