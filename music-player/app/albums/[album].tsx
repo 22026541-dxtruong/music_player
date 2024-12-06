@@ -1,9 +1,9 @@
 import React, {useEffect, useMemo, useState} from 'react'
-import {ActivityIndicator, Alert, FlatList, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native'
+import {ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View} from 'react-native'
 import {defaultStyle} from "@/constants/styles";
 import useFetch from "@/hooks/useFetch";
 import {BASE_URL} from "@/constants/constants";
-import {useLocalSearchParams, useNavigation} from "expo-router";
+import {router, useLocalSearchParams, useNavigation} from "expo-router";
 import useSearch from "@/hooks/useSearch";
 import FloatingPlayer from "@/components/FloatingPlayer";
 import {Image} from "expo-image";
@@ -15,13 +15,14 @@ import {useAuthContext} from "@/context/AuthContext";
 import SongListItem from "@/components/SongListItem";
 
 const AlbumScreen = () => {
-    const {index} = useLocalSearchParams<{ index: string }>()
+    const {album} = useLocalSearchParams<{ album: string }>()
     const { user } = useAuthContext()
-    const { data: dataAlbum } = useFetch<Album>(BASE_URL + `albums/by_id?album_id=${index}`)
-    const { data: dataSongs, loading: loadingSongs, error: errorSongs } = useFetch<Song[]>(BASE_URL + `songs/by_album?album_id=${index}`)
+    const { data: dataAlbum } = useFetch<Album>(BASE_URL + `albums/by_id?album_id=${album}`)
+    const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${dataAlbum?.artist_id}`)
+    const { data: dataSongs, loading: loadingSongs, error: errorSongs } = useFetch<Song[]>(BASE_URL + `songs/by_album?album_id=${album}`)
     const { data: favoriteAlbum } = useFetch<FavoriteAlbum[]>(BASE_URL + `favorites/albums?user_id=${user?.user_id}`)
     const { postData: addAlbum } = useFetch(BASE_URL + `favorites/albums/add`)
-    const { deleteData: deleteAlbum } = useFetch(BASE_URL + `favorites/albums/delete?user_id=${user?.user_id}&album_id=${index}`)
+    const { deleteData: deleteAlbum } = useFetch(BASE_URL + `favorites/albums/delete?user_id=${user?.user_id}&album_id=${album}`)
     const navigation = useNavigation()
 
     useEffect(() => {
@@ -32,7 +33,7 @@ const AlbumScreen = () => {
     }, [dataAlbum])
     const search = useSearch({
         searchBarOptions: {
-            placeholder: 'Find in album',
+            placeholder: 'Find in albums',
         }
     });
 
@@ -51,15 +52,15 @@ const AlbumScreen = () => {
 
     useEffect(() => {
         if (favoriteAlbum) {
-            const isArtistInFavorites = favoriteAlbum.some(item => item.album_id === Number(index));
+            const isArtistInFavorites = favoriteAlbum.some(item => item.album_id === Number(album));
             setIsFavorite(isArtistInFavorites);
         }
-    }, [favoriteAlbum, index]);
+    }, [favoriteAlbum, album]);
 
     const handleAddAlbum = () => {
         addAlbum({
             user_id: user?.user_id,
-            album_id: Number(index),
+            album_id: Number(album),
         }).then(() => {
             setIsFavorite(true);
         }).catch(error => {
@@ -78,11 +79,16 @@ const AlbumScreen = () => {
     return (
         <View style={{...defaultStyle.container}}>
             <View style={styles.header}>
-                <Image style={styles.image}
-                       source={{uri: dataAlbum?.image}}
-                       priority="normal" contentFit={"cover"}/>
+                <Image
+                    style={styles.image}
+                    source={{uri: dataAlbum?.image}}
+                    priority="normal" contentFit={"cover"}
+                />
                 <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.8)']} style={styles.backgroundImage}/>
-                <Text style={styles.artistName} numberOfLines={1}>{dataAlbum?.title || "Unknown Title"}</Text>
+                <View style={styles.albumAndArtist}>
+                    <Text style={{...defaultStyle.header, color: 'white', width: '100%'}} numberOfLines={1}>{dataAlbum?.title || "Unknown Title"}</Text>
+                    <Text style={defaultStyle.subtitle} onPress={() => router.push(`/artists/${dataAlbum?.artist_id}`)} numberOfLines={1}>{dataArtist?.name || "Unknown Artist"}</Text>
+                </View>
             </View>
             <View style={styles.option}>
                 { isFavorite ?
@@ -105,11 +111,10 @@ const AlbumScreen = () => {
                 </View>
             </View>
             {loadingSongs ? (
-                <ActivityIndicator size={"large"} color={"blue"} />
+                <ActivityIndicator style={{flex: 1}} size={"large"} color={"blue"} />
             ) : (
                 <FlatList
                     data={filteredTracks}
-                    scrollEnabled={false}
                     keyExtractor={(item) => item.song_id.toString()}
                     contentInsetAdjustmentBehavior="automatic"
                     ItemSeparatorComponent={() => <View style={{height: 5}}/>}
@@ -139,8 +144,7 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0
     },
-    artistName: {
-        ...defaultStyle.header,
+    albumAndArtist: {
         width: '100%',
         color: 'white',
         position: "absolute",

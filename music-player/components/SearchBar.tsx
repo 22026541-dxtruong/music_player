@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -19,13 +19,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Feather from '@expo/vector-icons/Feather';
 
 type Props = {
+    type? : 'artist' | 'album' | 'song'
     visible: boolean
     onClose: () => void
 }
 
-const SearchBar = ({visible, onClose}: Props) => {
+const SearchBar = ({type, visible, onClose}: Props) => {
     const [query, setQuery] = useState('')
     const [history, setHistory] = useState<SearchResultItem[]>([])
+    const [loadingHistory, setLoadingHistory] = useState(false)
+    const [filterList, setFilterList] = useState<SearchResultItem[]>([])
 
     // useEffect(() => {
     //     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -43,6 +46,7 @@ const SearchBar = ({visible, onClose}: Props) => {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
+                setLoadingHistory(true)
                 const searchHistory = await AsyncStorage.getItem('searchHistory')
                 const parsedHistory = searchHistory ? JSON.parse(searchHistory) : [];
                 if (Array.isArray(parsedHistory)) {
@@ -52,10 +56,17 @@ const SearchBar = ({visible, onClose}: Props) => {
                 }
             } catch (error) {
                 console.error(error)
+            } finally {
+                setLoadingHistory(false)
             }
         }
         fetchHistory().catch(console.error)
     }, []);
+
+    useEffect(() => {
+        if (!type) return;
+        setFilterList(history.filter(item => item.type === type))
+    }, [type, history]);
 
     useEffect(() => {
         const saveToStorage = async () => {
@@ -69,10 +80,10 @@ const SearchBar = ({visible, onClose}: Props) => {
     }, [history]);
 
     const saveHistory = (item: SearchResultItem) => {
-        setHistory([item, ...history.filter(i => JSON.stringify(i) !== JSON.stringify(item))]);
+        setHistory(prev => [item, ...prev.filter(i => JSON.stringify(i) !== JSON.stringify(item))]);
     }
 
-    const { data, loading } = useFetch<SearchResultItem[] | null>(BASE_URL + `search?query=${query}`)
+    const { data, loading } = useFetch<SearchResultItem[] | null>(BASE_URL + `search?query=${query}` + (type ? `&type=${type}` : ''))
 
     const renderItem = (item: SearchResultItem, onPress?: () => void) => {
         if (item.type === 'song') return <SongListItem song={item.data as Song} onPress={onPress} />
@@ -86,7 +97,7 @@ const SearchBar = ({visible, onClose}: Props) => {
         return item.type + (item.data as Artist).artist_id.toString()
     }
 
-    const renderResults = useMemo(() => {
+    const renderResults = useCallback(() => {
         if (!query) return null;
         if (loading) return <ActivityIndicator size="large" color={'black'}/>
         if (!data)
@@ -107,10 +118,11 @@ const SearchBar = ({visible, onClose}: Props) => {
         );
     }, [query, data, loading]);
 
-    const renderHistory = useMemo(() => {
+    const renderHistory = useCallback(() => {
+        if (loadingHistory) return <ActivityIndicator size="large" color={'black'}/>
         return (
             <FlatList
-                data={history}
+                data={type ? filterList : history}
                 ItemSeparatorComponent={() => <View style={{height: 10}}/>}
                 keyExtractor={item => keyFlatList(item)}
                 renderItem={({item}) => renderItem(
@@ -122,10 +134,10 @@ const SearchBar = ({visible, onClose}: Props) => {
                 )}
             />
         )
-    }, [history])
+    }, [filterList, history, loadingHistory])
 
     return (
-        <Modal animationType="fade" visible={visible} transparent={false}>
+        <Modal animationType="fade" visible={visible} transparent={false}  onRequestClose={onClose}>
             <View style={defaultStyle.container}>
                 <View style={styles.searchBarContainer}>
                     <Pressable onPress={onClose}>
@@ -135,10 +147,10 @@ const SearchBar = ({visible, onClose}: Props) => {
                         value={query}
                         onChangeText={setQuery}
                         style={styles.searchBar}
-                        placeholder="Search artist, album and song"
+                        placeholder={`Search ${type ? type : 'artist, albums and song'}`}
                     />
                 </View>
-                {query.length > 0 ? renderResults : renderHistory}
+                {query.length > 0 ? renderResults() : renderHistory()}
             </View>
         </Modal>
     );

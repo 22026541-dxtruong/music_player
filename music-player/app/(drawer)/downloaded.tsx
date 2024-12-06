@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import useSearch from "@/hooks/useSearch";
 import {ActivityIndicator, Alert, FlatList, Pressable, View} from "react-native";
 import {defaultStyle} from "@/constants/styles";
@@ -63,7 +63,7 @@ const DownloadedSongScreen = () => {
     return (
         <View style={defaultStyle.container}>
             {loading ? (
-                <ActivityIndicator size={"large"} color={"blue"} />
+                <ActivityIndicator style={{flex: 1}} size={"large"} color={"blue"} />
             ) : (
                 <FlatList
                     data={filteredTracks}

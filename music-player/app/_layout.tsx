@@ -34,28 +34,28 @@ const RootLayout = () => {
     return (
 
         <GestureHandlerRootView style={{flex: 1}}>
-        <SQLiteProvider databaseName={'music_player.db'} onInit={initializeDatabase}>
-            <AuthContextProvider>
-                <AudioContextProvider>
-                    <DownloadContextProvider>
-                        <Stack
-                            screenOptions={{
-                                headerShown: false,
-                            }}
-                        >
-                            <Stack.Screen name="login"/>
-                            <Stack.Screen name="register"/>
-                            <Stack.Screen name="(drawer)"/>
-                            <Stack.Screen name="artists"/>
-                            <Stack.Screen name="album/[index]" options={{headerShown: true}}/>
-                            <Stack.Screen name="genre/[index]"/>
-                            <Stack.Screen name="songs"/>
-                            <Stack.Screen name="playlists"/>
-                        </Stack>
-                    </DownloadContextProvider>
-                </AudioContextProvider>
-            </AuthContextProvider>
-        </SQLiteProvider>
+            <SQLiteProvider databaseName={'music_player.db'} onInit={initializeDatabase}>
+                <AuthContextProvider>
+                    <AudioContextProvider>
+                        <DownloadContextProvider>
+                            <Stack
+                                screenOptions={{
+                                    headerShown: false,
+                                }}
+                            >
+                                <Stack.Screen name="login"/>
+                                <Stack.Screen name="register"/>
+                                <Stack.Screen name="(drawer)"/>
+                                <Stack.Screen name="artists"/>
+                                <Stack.Screen name="albums"/>
+                                <Stack.Screen name="genre/[index]"/>
+                                <Stack.Screen name="songs"/>
+                                <Stack.Screen name="playlists/[index]" options={{headerShown: true}}/>
+                            </Stack>
+                        </DownloadContextProvider>
+                    </AudioContextProvider>
+                </AuthContextProvider>
+            </SQLiteProvider>
         </GestureHandlerRootView>
     );
 };

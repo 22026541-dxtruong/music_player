@@ -53,6 +53,10 @@ func RegisterRoutes() {
 	http.HandleFunc("/playlists/create", handlers.CreatePlaylist)
 	//GET /playlists/songs?playlist_id=1
 	http.HandleFunc("/playlists/songs", handlers.GetSongsByPlaylistID)
+	//DELETE /playlists/delete
+	http.HandleFunc("/playlists/delete", handlers.DeletePlaylistByID)
+	//DELETE /playlists/songs/delete
+	http.HandleFunc("/playlists/songs/delete", handlers.DeleteSongInPlaylist)
 
 	//POST /favorites/artists/add
     http.HandleFunc("/favorites/artists/add", handlers.AddFavoriteArtistByUserID)

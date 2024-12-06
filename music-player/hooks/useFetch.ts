@@ -7,10 +7,17 @@ const useFetch = <T>(url: string) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<FetchError | null>(null);
 
-    const fetchData = async (searchTerm?: string) => {
+    const fetchData = async (searchTerm?: string, searchType?: string) => {
         try {
+            const params: any = {};
+            if (searchTerm) {
+                params.query = searchTerm;
+            }
+            if (searchType) {
+                params.type = searchType;
+            }
             const response = await axios.get(url, {
-                params: searchTerm ? { query: searchTerm } : {},
+                params: params
             });
             setData(response.data);
         } catch (error: any) {
@@ -54,9 +61,9 @@ const useFetch = <T>(url: string) => {
         fetchData().catch(console.error);
     }, [url]);
 
-    const search = (searchTerm: string) => {
+    const search = (searchTerm: string, searchType: string) => {
         setLoading(true);
-        fetchData(searchTerm).catch(console.error);
+        fetchData(searchTerm, searchType).catch(console.error);
     };
 
     return { data, loading, error, postData, deleteData, search, reFetchData };

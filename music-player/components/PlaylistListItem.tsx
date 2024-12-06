@@ -1,8 +1,8 @@
-import React from "react";
+import React, {useCallback} from "react";
 import {Pressable, StyleSheet, Text, View} from "react-native";
 import {Image} from "expo-image";
 import {defaultStyle} from "@/constants/styles";
-import {router} from "expo-router";
+import {router, useFocusEffect} from "expo-router";
 import playlistLogo from '@/assets/images/playlist-logo.jpg'
 import useFetch from "@/hooks/useFetch";
 import {BASE_URL} from "@/constants/constants";
@@ -13,7 +13,12 @@ type Props = {
 };
 
 const PlaylistListItem = ({playlist, onPress}: Props) => {
-    const { data } = useFetch<PlaylistSong[]>(BASE_URL + `playlists/songs?playlist_id=${playlist.playlist_id}`)
+    const { data, reFetchData } = useFetch<PlaylistSong[]>(BASE_URL + `playlists/songs?playlist_id=${playlist.playlist_id}`)
+    useFocusEffect(
+        useCallback(() => {
+            reFetchData()
+        }, [])
+    )
     return (
         <Pressable style={styles.container} onPress={() => {
             router.push(`/playlists/${playlist.playlist_id}`)

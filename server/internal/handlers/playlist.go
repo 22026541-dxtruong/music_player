@@ -138,22 +138,29 @@ func AddSongToPlaylist(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreatePlaylist(w http.ResponseWriter, r *http.Request) {
-	userIDStr := r.URL.Query().Get("user_id")
-	name := r.URL.Query().Get("name")
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
 
-	if userIDStr == "" || name == "" {
+	var reqBody struct {
+		UserID int    `json:"user_id"`
+		Name   string `json:"name"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&reqBody)
+	if err != nil {
+		http.Error(w, `{"error": "invalid JSON format"}`, http.StatusBadRequest)
+		return
+	}
+
+	if reqBody.UserID == 0 || reqBody.Name == "" {
 		http.Error(w, "user_id and name are required", http.StatusBadRequest)
 		return
 	}
 
-	userID, err := strconv.Atoi(userIDStr)
-	if err != nil {
-		http.Error(w, "invalid user_id", http.StatusBadRequest)
-		return
-	}
-
 	// Thêm playlist vào cơ sở dữ liệu
-	result, err := db.DB.Exec("INSERT INTO playlist (user_id, name) VALUES (?, ?)", userID, name)
+	result, err := db.DB.Exec("INSERT INTO playlist (user_id, name) VALUES (?, ?)", reqBody.UserID, reqBody.Name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -205,4 +212,106 @@ func GetSongsByPlaylistID(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(playlistSongs)
+}
+
+func DeletePlaylistByID(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+    
+	playlistIDStr := r.URL.Query().Get("playlist_id")
+	if playlistIDStr == "" {
+		http.Error(w, "playlist_id is required", http.StatusBadRequest)
+		return
+	}
+
+	playlistID, err := strconv.Atoi(playlistIDStr)
+	if err != nil {
+		http.Error(w, "invalid playlist_id", http.StatusBadRequest)
+		return
+	}
+
+	// Xóa dữ liệu liên quan trong bảng playlist_song
+	result, err := db.DB.Exec(`DELETE FROM playlist_song WHERE playlist_id = ?`, playlistID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Xóa dữ liệu trong bảng playlist
+	result, err = db.DB.Exec(`DELETE FROM playlist WHERE playlist_id = ?`, playlistID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if rowsAffected == 0 {
+		http.Error(w, "Playlist not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "playlist deleted"})
+}
+
+func DeleteSongInPlaylist(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodDelete {
+   		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+   		return
+    }
+
+   	playlistIDStr := r.URL.Query().Get("playlist_id")
+   	songIDStr := r.URL.Query().Get("song_id")
+
+    if playlistIDStr == "" || songIDStr == "" {
+   		http.Error(w, "playlist_id and song_id are required", http.StatusBadRequest)
+   		return
+   	}
+
+    playlistID, err := strconv.Atoi(playlistIDStr)
+   	if err != nil {
+   		http.Error(w, "invalid playlist", http.StatusBadRequest)
+   		return
+   	}
+
+    songID, err := strconv.Atoi(songIDStr)
+   	if err != nil {
+   		http.Error(w, "invalid song_id", http.StatusBadRequest)
+   		return
+   	}
+
+    result, err := db.DB.Exec("DELETE FROM playlist_song WHERE playlist_id = ? AND song_id = ?", playlistID, songID)
+   	if err != nil {
+   		http.Error(w, err.Error(), http.StatusInternalServerError)
+   		return
+   	}
+
+    rowsAffected, err := result.RowsAffected()
+   	if err != nil {
+   		http.Error(w, err.Error(), http.StatusInternalServerError)
+   		return
+   	}
+
+    if rowsAffected == 0 {
+   		http.Error(w, "song not found in playlist", http.StatusNotFound)
+   		return
+   	}
+
+    w.WriteHeader(http.StatusOK)
+   	w.Header().Set("Content-Type", "application/json")
+   	json.NewEncoder(w).Encode(map[string]string{"message": "song deleted in playlist"})
 }

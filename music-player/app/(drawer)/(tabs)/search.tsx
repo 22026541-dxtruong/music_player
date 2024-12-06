@@ -101,7 +101,12 @@ const SearchScreen = () => {
                     </Pressable>
                 </View>
                 {renderArtists()}
-                <Text style={{...defaultStyle.header, paddingBottom: 5}}>Albums</Text>
+                <View style={styles.headerList}>
+                    <Text style={defaultStyle.header}>Albums</Text>
+                    <Pressable onPress={() => router.push("/albums")}>
+                        <Text style={styles.text}>View all</Text>
+                    </Pressable>
+                </View>
                 {renderAlbums()}
                 <Text style={{...defaultStyle.header, paddingBottom: 5}}>Genres</Text>
                 {renderGenres()}

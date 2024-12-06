@@ -27,16 +27,28 @@ import {AntDesign} from "@expo/vector-icons";
 import axios from "axios";
 import PlaylistListItem from "@/components/PlaylistListItem";
 import FavoriteSongItem from "@/components/FavoriteSongItem";
+import SearchBar from "@/components/SearchBar";
+import AddFavorite from "@/components/AddFavorite";
+import CreatePlaylistModal from "@/components/CreatePlaylistModal";
 
 const LibraryScreen = () => {
     const { user } = useAuthContext();
     const [chooseArtist, setChooseArtist] = useState(false);
     const [chooseAlbum, setChooseAlbum] = useState(false);
     const [choosePlaylist, setChoosePlaylist] = useState(false);
+    const [isSearching, setIsSearching] = useState(false)
+    const [showCreatePlaylist, setShowCreatePlaylist] = useState(false)
 
     const { data: dataArtist, loading: loadingArtist, error: errorArtist, reFetchData: reFetchArtist } = useFetch<Artist[]>(BASE_URL + `favorites/artists?user_id=${user?.user_id}`);
     const { data: dataAlbum, loading: loadingAlbum, error: errorAlbum, reFetchData: reFetchAlbum } = useFetch<Album[]>(BASE_URL + `favorites/albums?user_id=${user?.user_id}`);
     const { data: dataPlaylist, loading: loadingPlaylist, error: errorPlaylist, reFetchData: reFetchPlaylist } = useFetch<Playlist[]>(BASE_URL + `playlists/by_user?user_id=${user?.user_id}`);
+
+    const toggleCreatePlaylist = () => {
+        reFetchPlaylist()
+        setShowCreatePlaylist(!showCreatePlaylist);
+    }
+
+    const [type, setType] = useState<'artist' | 'album' | undefined>(undefined)
 
     useFocusEffect(
         useCallback(() => {
@@ -53,7 +65,7 @@ const LibraryScreen = () => {
         } else if ('artist_id' in item) {
             deleteUrl = BASE_URL + `favorites/artists/delete?user_id=${user?.user_id}&artist_id=${item.artist_id}`;
         } else if ('playlist_id' in item) {
-            deleteUrl = BASE_URL + `favorites/playlists/delete?user_id=${user?.user_id}&playlist_id=${item.playlist_id}`
+            deleteUrl = BASE_URL + `playlists/delete?playlist_id=${item.playlist_id}`
         }
 
         if (deleteUrl) {
@@ -105,6 +117,11 @@ const LibraryScreen = () => {
             setChoosePlaylist(false);
         }
     };
+
+    const handleAdd = (selection?: 'artist' | 'album') => {
+        setIsSearching(!isSearching)
+        setType(selection)
+    }
 
     const renderArtists = useCallback(() => {
         if (errorArtist) return <Text style={defaultStyle.error}>Artists: {errorArtist.message}</Text>
@@ -180,15 +197,18 @@ const LibraryScreen = () => {
 
     return (
         <View style={defaultStyle.container}>
-            <FloatingDownload />
-            <ScrollView style={{flex: 1}}>
-                <View style={styles.header}>
-                    <View style={{alignItems: 'center', justifyContent: 'center'}}>
-                        <DrawerToggleButton tintColor={'transparent'}/>
-                        <CircleAvatar size={35} style={{ position: "absolute", zIndex: -1}}/>
-                    </View>
-                    <Text style={{...defaultStyle.header, flexGrow: 1}}>Your Library</Text>
+            <View style={styles.header}>
+                <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                    <DrawerToggleButton tintColor={'transparent'}/>
+                    <CircleAvatar size={35} style={{ position: "absolute", zIndex: -1}}/>
                 </View>
+                <Text style={{...defaultStyle.header, flexGrow: 1}}>Your Library</Text>
+            </View>
+            <FloatingDownload />
+            <ScrollView
+                style={{flex: 1}}
+                showsVerticalScrollIndicator={false}
+            >
                 <View style={styles.chips}>
                     { choosePlaylist || chooseArtist || chooseAlbum ?
                         <MaterialIcons name="cancel" size={30} color="#CB9DF0" onPress={() => handleChoose('filter')} /> :
@@ -200,12 +220,17 @@ const LibraryScreen = () => {
                 </View>
                 <FavoriteSongItem />
 
+                {(chooseArtist || (!chooseArtist && !chooseAlbum && !choosePlaylist)) && <AddFavorite text={'Add Artist'} icon={'person-add'} onPress={() => handleAdd('artist')} />}
+                {(chooseAlbum || (!chooseArtist && !chooseAlbum && !choosePlaylist)) && <AddFavorite text={'Add Album'} icon={'album'} onPress={() => handleAdd('album')} />}
+                {(choosePlaylist || (!chooseArtist && !chooseAlbum && !choosePlaylist)) && <AddFavorite text={'Create Playlist'} icon={'playlist-add'} onPress={toggleCreatePlaylist} />}
+
                 { loadingArtist && loadingAlbum && loadingPlaylist && <ActivityIndicator size={"large"} color={"blue"}/> }
                 { (chooseArtist || (!chooseArtist && !chooseAlbum && !choosePlaylist)) && renderArtists() }
                 { (chooseAlbum || (!chooseArtist && !chooseAlbum && !choosePlaylist)) && renderAlbums() }
                 { (choosePlaylist || (!chooseArtist && !chooseAlbum && !choosePlaylist)) && renderPlaylist() }
-
             </ScrollView>
+            <CreatePlaylistModal visible={showCreatePlaylist} onClose={toggleCreatePlaylist} />
+            <SearchBar visible={isSearching} onClose={() => handleAdd()} type={type} />
             <FloatingPlayer />
         </View>
     )

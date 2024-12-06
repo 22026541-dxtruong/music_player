@@ -31,7 +31,7 @@ const SquareAlbum = ({ album }: Props) => {
     // }, [translateX]);
 
     return (
-        <Pressable style={styles.container} onPress={() => router.push(`/album/${album.album_id}`)}>
+        <Pressable style={styles.container} onPress={() => router.push(`/albums/${album.album_id}`)}>
             <Image style={styles.image} source={album.image ? { uri: album.image } : favicon} priority="normal" />
             <Text numberOfLines={1} style={[styles.text]}>{album.title}</Text>
             <Text style={defaultStyle.subtitle}>{dataArtist?.name || ''}</Text>

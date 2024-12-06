@@ -23,7 +23,7 @@ const AlbumListItem = ({album_id, album, artist, onPress}: Props) => {
     return (
         <Pressable style={styles.container} onPress={() => {
             if (album) {
-                router.push(`/album/${album.album_id}`)
+                router.push(`/albums/${album.album_id}`)
                 onPress?.()
             }
         }}>

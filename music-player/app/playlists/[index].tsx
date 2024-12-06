@@ -1,21 +1,43 @@
-import React, {useState} from 'react';
-import {ActivityIndicator, Alert, Animated, FlatList, Pressable, StyleSheet, View} from "react-native";
-import { defaultStyle } from "@/constants/styles";
-import FloatingPlayer from "@/components/FloatingPlayer";
+import React, {useEffect, useMemo, useState} from 'react'
+import {ActivityIndicator, Alert, Animated, FlatList, Pressable, StyleSheet, View} from 'react-native'
 import useFetch from "@/hooks/useFetch";
-import { BASE_URL } from '@/constants/constants';
-import {useAuthContext} from "@/context/AuthContext";
+import {BASE_URL} from "@/constants/constants";
+import axios from "axios";
+import {AntDesign} from "@expo/vector-icons";
+import {defaultStyle} from "@/constants/styles";
+import AddFavorite from "@/components/AddFavorite";
 import {Swipeable} from "react-native-gesture-handler";
 import colors from "@/constants/colors";
-import {AntDesign} from "@expo/vector-icons";
 import SongListItem from "@/components/SongListItem";
-import axios from "axios";
-import AddFavorite from "@/components/AddFavorite";
 import SearchBar from "@/components/SearchBar";
+import FloatingPlayer from "@/components/FloatingPlayer";
+import {useLocalSearchParams, useNavigation} from "expo-router";
+import useSearch from "@/hooks/useSearch";
 
-const SongListScreen = () => {
-    const { user } = useAuthContext()
-    const { data, loading, error, reFetchData } = useFetch<FavoriteSong[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)
+const PlaylistScreen = () => {
+    const { index } = useLocalSearchParams<{ index: string }>()
+    const { data: playlist } = useFetch<Playlist>(BASE_URL + `playlists/by_id?playlist_id=${index}`)
+    const { data, loading, error, reFetchData } = useFetch<Song[]>(BASE_URL + `playlists/songs?playlist_id=${index}`)
+    const navigation = useNavigation()
+
+    useEffect(() => {
+        navigation.setOptions({
+            title: playlist?.name || 'Playlist',
+            // header: () => null
+        })
+    }, [data])
+
+    const search = useSearch({
+        searchBarOptions: {
+            placeholder: 'Find in playlist',
+        }
+    });
+
+    const filteredTracks = useMemo(() => {
+        if (!search) return data ?? [];
+        const searchLower = search.toLowerCase();
+        return data ? data.filter(track => track.title.toLowerCase().includes(searchLower)) : [];
+    }, [data, search]);
 
     const [isSearching, setIsSearching] = useState(false)
 
@@ -28,9 +50,9 @@ const SongListScreen = () => {
         return null;
     }
 
-    const handleDelete = async (item: FavoriteSong) => {
+    const handleDelete = async (item: Song) => {
         try {
-            await axios.delete(BASE_URL + `favorites/songs/delete?user_id=${user?.user_id}&song_id=${item.song_id}`);
+            await axios.delete(BASE_URL + `playlist/songs/delete?playlist_id=${index}&song_id=${item.song_id}`);
             reFetchData();
         } catch (error) {
             console.error('Error deleting item:', error);
@@ -40,7 +62,7 @@ const SongListScreen = () => {
     const renderRightActions = (
         progress:  Animated.AnimatedInterpolation<string | number>,
         dragX: Animated.AnimatedInterpolation<string | number>,
-        item: FavoriteSong
+        item: Song
     ) => {
         return (
             <View style={styles.rightAction}>
@@ -58,7 +80,7 @@ const SongListScreen = () => {
                 <ActivityIndicator style={{flex: 1}} size={"large"} color={"blue"} />
             ) : (
                 <FlatList
-                    data={data}
+                    data={filteredTracks}
                     keyExtractor={(item) => item.song_id.toString()}
                     scrollEnabled={false}
                     renderItem={({item}) =>
@@ -69,7 +91,7 @@ const SongListScreen = () => {
                             }
                             overshootLeft={false}
                         >
-                            <SongListItem song_id={item.song_id}/>
+                            <SongListItem song={item}/>
                         </Swipeable>
                     }
                     ItemSeparatorComponent={() => <View style={{height: 10}}/>}
@@ -91,4 +113,4 @@ const styles = StyleSheet.create({
     },
 })
 
-export default SongListScreen;
+export default PlaylistScreen;

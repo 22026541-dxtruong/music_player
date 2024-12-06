@@ -14,10 +14,15 @@ import FloatingDownload from "@/components/FloatingDownload";
 import {useDownloadContext} from "@/context/DownloadContext";
 import {useSQLiteContext} from "expo-sqlite";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import {useAuthContext} from "@/context/AuthContext";
 
 const SongScreen = () => {
+    const { user } = useAuthContext()
     const audioContext = useAudioContext()
     const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${audioContext.currentSong?.artist_id}`)
+    const { data: favoriteSong } = useFetch<FavoriteSong[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)
+    const { postData: addSong } = useFetch(BASE_URL + `favorites/songs/add`)
+    const { deleteData: deleteSong } = useFetch(BASE_URL + `favorites/songs/delete?user_id=${user?.user_id}&song_id=${audioContext.currentSong?.song_id}`)
     const inset = useSafeAreaInsets()
     const [sliderValue, setSliderValue] = useState(0);
     const [isRepeating, setIsRepeating] = useState(false);
@@ -37,6 +42,15 @@ const SongScreen = () => {
         }
         fetchData().catch(console.error)
     }, [])
+
+    const [isFavorite, setIsFavorite] = useState(false);
+
+    useEffect(() => {
+        if (favoriteSong) {
+            const isArtistInFavorites = favoriteSong.some(item => item.song_id === Number(audioContext.currentSong?.song_id));
+            setIsFavorite(isArtistInFavorites);
+        }
+    }, [favoriteSong, audioContext.currentSong?.song_id]);
 
     const [isDownloaded, setIsDownloaded] = useState(false)
 
@@ -95,6 +109,25 @@ const SongScreen = () => {
         }
     };
 
+    const handleAddSong = () => {
+        addSong({
+            user_id: user?.user_id,
+            song_id: Number(audioContext.currentSong?.song_id),
+        }).then(() => {
+            setIsFavorite(true);
+        }).catch(error => {
+            console.error("Error adding song:", error);
+        });
+    };
+
+    const handleDeleteSong = () => {
+        deleteSong().then(() => {
+            setIsFavorite(false);
+        }).catch(error => {
+            console.error("Error deleting song:", error);
+        });
+    };
+
     return (
         <View style={{...defaultStyle.container, paddingTop: inset.top}}>
             <View style={styles.topAppBar}>
@@ -123,7 +156,7 @@ const SongScreen = () => {
                         <Text numberOfLines={1} style={defaultStyle.title}>
                             {audioContext.currentSong?.title}
                         </Text>
-                        <Text numberOfLines={1} style={defaultStyle.subtitle}>
+                        <Text numberOfLines={1} onPress={() => router.push(`/artists/${dataArtist?.artist_id}`)} style={defaultStyle.subtitle}>
                             {dataArtist?.name}
                         </Text>
                     </View>
@@ -136,9 +169,14 @@ const SongScreen = () => {
                                 <MaterialIcons name="file-download" size={24} color="black" />
                             </Pressable>
                         }
-                        <Pressable>
-                            <FontAwesome6 name="heart" size={20} color="black"/>
-                        </Pressable>
+                        { isFavorite ?
+                            <Pressable onPress={() => handleDeleteSong()}>
+                                <MaterialIcons name="favorite" size={20} color="red" />
+                            </Pressable> :
+                            <Pressable onPress={() => handleAddSong()}>
+                                <MaterialIcons name="favorite-border" size={20} color="black" />
+                            </Pressable>
+                        }
                     </View>
                 </View>
                 <Slider
@@ -175,8 +213,8 @@ const SongScreen = () => {
                     <Pressable onPress={() => {
                             setIsRepeating(!isRepeating);
                             audioContext.toggleRepeat(!isRepeating);
-                        }} style={isRepeating ? styles.buttonAppBar : {}}>
-                        <FontAwesome6 name="repeat" size={20} color="black"/>
+                        }}>
+                        <FontAwesome6 name="repeat" size={20} color={isRepeating ? "#8B5DFF" : "black"}/>
                     </Pressable>
                 </View>
             </View>

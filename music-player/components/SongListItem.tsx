@@ -6,6 +6,7 @@ import favicon from "@/assets/images/favicon.png";
 import {useAudioContext} from "@/context/AudioContext";
 import {BASE_URL} from "@/constants/constants";
 import useFetch from "@/hooks/useFetch";
+import {router} from "expo-router";
 
 type Props = {
     song_id?: number
@@ -28,6 +29,7 @@ const SongListItem = ({song_id, song, artist, onPress}: Props) => {
         <Pressable style={styles.container} disabled={song?.song_id === audioContext.currentSong?.song_id} onPress={() => {
             if (song) {
                 audioContext.play(song).catch(console.error)
+                router.push(`/songs/${audioContext.currentSong?.song_id}`)
                 onPress?.()
             }
         }}>

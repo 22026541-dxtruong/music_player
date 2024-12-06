@@ -1,8 +1,8 @@
-import React from "react";
+import React, {useCallback} from "react";
 import {Pressable, StyleSheet, Text, View} from "react-native";
 import {Image} from "expo-image";
 import {defaultStyle} from "@/constants/styles";
-import {router} from "expo-router";
+import {router, useFocusEffect} from "expo-router";
 import favoriteSong from '@/assets/images/favorite_song.png'
 import useFetch from "@/hooks/useFetch";
 import {BASE_URL} from "@/constants/constants";
@@ -14,7 +14,12 @@ type Props = {
 
 const FavoriteSongItem = ({onPress}: Props) => {
     const { user } = useAuthContext()
-    const { data } = useFetch<PlaylistSong[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)
+    const { data, reFetchData } = useFetch<PlaylistSong[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)
+    useFocusEffect(
+        useCallback(() => {
+            reFetchData()
+        }, [])
+    );
     return (
         <Pressable style={styles.container} onPress={() => {
             router.push(`/songs`)
