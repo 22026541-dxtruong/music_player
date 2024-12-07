@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react'
+import React, {useCallback, useEffect, useState} from 'react'
 import {
     ActivityIndicator, Animated,
     FlatList, Pressable,
@@ -44,9 +44,12 @@ const LibraryScreen = () => {
     const { data: dataPlaylist, loading: loadingPlaylist, error: errorPlaylist, reFetchData: reFetchPlaylist } = useFetch<Playlist[]>(BASE_URL + `playlists/by_user?user_id=${user?.user_id}`);
 
     const toggleCreatePlaylist = () => {
-        reFetchPlaylist()
         setShowCreatePlaylist(!showCreatePlaylist);
     }
+
+    useEffect(() => {
+        reFetchPlaylist()
+    }, [showCreatePlaylist]);
 
     const [type, setType] = useState<'artist' | 'album' | undefined>(undefined)
 
@@ -145,7 +148,7 @@ const LibraryScreen = () => {
                 ItemSeparatorComponent={() => <View style={{height: 10}}/>}
             />
         )
-    }, [dataArtist, loadingArtist])
+    }, [dataArtist, errorArtist])
 
     const renderAlbums = useCallback(() => {
         if (errorAlbum) return <Text style={defaultStyle.error}>Albums: {errorAlbum.message}</Text>
@@ -169,7 +172,7 @@ const LibraryScreen = () => {
                 ItemSeparatorComponent={() => <View style={{height: 10}}/>}
             />
         )
-    }, [dataAlbum, loadingAlbum])
+    }, [dataAlbum, errorAlbum])
 
     const renderPlaylist = useCallback(() => {
         if (errorPlaylist) return <Text style={defaultStyle.error}>Playlists: {errorPlaylist.message}</Text>
@@ -193,7 +196,7 @@ const LibraryScreen = () => {
                 ItemSeparatorComponent={() => <View style={{height: 10}}/>}
             />
         )
-    }, [dataPlaylist, loadingPlaylist])
+    }, [dataPlaylist, errorPlaylist])
 
     return (
         <View style={defaultStyle.container}>
@@ -205,19 +208,19 @@ const LibraryScreen = () => {
                 <Text style={{...defaultStyle.header, flexGrow: 1}}>Your Library</Text>
             </View>
             <FloatingDownload />
+            <View style={styles.chips}>
+                { choosePlaylist || chooseArtist || chooseAlbum ?
+                    <MaterialIcons name="cancel" size={30} color="#CB9DF0" onPress={() => handleChoose('filter')} /> :
+                    <Feather name="filter" style={{paddingHorizontal: 3}} size={24} color="black" />
+                }
+                <Chip text={'Artist'} choose={chooseArtist} onPress={() => handleChoose('artist')} />
+                <Chip text={'Album'} choose={chooseAlbum} onPress={() => handleChoose('album')} />
+                <Chip text={'Playlist'} choose={choosePlaylist} onPress={() => handleChoose('playlist')} />
+            </View>
             <ScrollView
                 style={{flex: 1}}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={styles.chips}>
-                    { choosePlaylist || chooseArtist || chooseAlbum ?
-                        <MaterialIcons name="cancel" size={30} color="#CB9DF0" onPress={() => handleChoose('filter')} /> :
-                        <Feather name="filter" style={{paddingHorizontal: 3}} size={24} color="black" />
-                    }
-                    <Chip text={'Artist'} choose={chooseArtist} onPress={() => handleChoose('artist')} />
-                    <Chip text={'Album'} choose={chooseAlbum} onPress={() => handleChoose('album')} />
-                    <Chip text={'Playlist'} choose={choosePlaylist} onPress={() => handleChoose('playlist')} />
-                </View>
                 <FavoriteSongItem />
 
                 {(chooseArtist || (!chooseArtist && !chooseAlbum && !choosePlaylist)) && <AddFavorite text={'Add Artist'} icon={'person-add'} onPress={() => handleAdd('artist')} />}

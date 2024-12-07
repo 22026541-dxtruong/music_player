@@ -93,48 +93,46 @@ func GetPlaylistByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(playlist)
 }
 
-func AddSongToPlaylist(w http.ResponseWriter, r *http.Request) {
-	userIDStr := r.URL.Query().Get("user_id")
-	playlistIDStr := r.URL.Query().Get("playlist_id")
-	songIDStr := r.URL.Query().Get("song_id")
-
-	if userIDStr == "" || playlistIDStr == "" || songIDStr == "" {
-		http.Error(w, "user_id, playlist_id and song_id are required", http.StatusBadRequest)
+func AddSongToPlaylists(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	_, err := strconv.Atoi(userIDStr)
-	if err != nil {
-		http.Error(w, "invalid user_id", http.StatusBadRequest)
-		return
-	}
+    var request struct {
+    	UserID      int     `json:"user_id"`
+    	PlaylistIDs []int   `json:"playlist_ids"`
+    	SongID      int     `json:"song_id"`
+   	}
 
-	playlistID, err := strconv.Atoi(playlistIDStr)
-	if err != nil {
-		http.Error(w, "invalid playlist_id", http.StatusBadRequest)
-		return
-	}
+   	err := json.NewDecoder(r.Body).Decode(&request)
+   	if err != nil {
+   		http.Error(w, `{"error": "invalid JSON format"}`, http.StatusBadRequest)
+   		return
+    }
+	// Kiểm tra tính hợp lệ của các tham số
+    if request.UserID == 0 || len(request.PlaylistIDs) == 0 || request.SongID == 0 {
+   		http.Error(w, "user_id, playlist_ids and song_id are required", http.StatusBadRequest)
+   		return
+   	}
 
-	songID, err := strconv.Atoi(songIDStr)
-	if err != nil {
-		http.Error(w, "invalid song_id", http.StatusBadRequest)
-		return
-	}
+    // Thêm bài hát vào tất cả các playlist
+   	for _, playlistID := range request.PlaylistIDs {
+   		_, err := db.DB.Exec("INSERT INTO playlist_song (playlist_id, song_id) VALUES (?, ?)", playlistID, request.SongID)
+   		if err != nil {
+   			if err.Error() == "UNIQUE constraint failed: playlist_song.playlist_id, playlist_song.song_id" {
+    			// Nếu bài hát đã có trong playlist này thì bỏ qua và tiếp tục
+    			continue
+    		}
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+    		return
+    	}
+    }
 
-	// Thêm bài hát vào playlist
-	_, err = db.DB.Exec("INSERT INTO playlist_song (playlist_id, song_id) VALUES (?, ?)", playlistID, songID)
-	if err != nil {
-		if err.Error() == "UNIQUE constraint failed: playlist_song.playlist_id, playlist_song.song_id" {
-			http.Error(w, "song already in playlist", http.StatusConflict)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated) // Trả về mã 201 Created
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"message": "song added to playlist"})
+    // Trả về phản hồi thành công
+   	w.WriteHeader(http.StatusCreated)
+   	w.Header().Set("Content-Type", "application/json")
+   	json.NewEncoder(w).Encode(map[string]string{"message": "song added to playlists"})
 }
 
 func CreatePlaylist(w http.ResponseWriter, r *http.Request) {

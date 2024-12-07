@@ -15,6 +15,8 @@ import {useDownloadContext} from "@/context/DownloadContext";
 import {useSQLiteContext} from "expo-sqlite";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {useAuthContext} from "@/context/AuthContext";
+import SongOptions from "@/components/SongOptions";
+import AddToPlaylistModal from "@/components/AddToPlaylistModal";
 
 const SongScreen = () => {
     const { user } = useAuthContext()
@@ -26,6 +28,10 @@ const SongScreen = () => {
     const inset = useSafeAreaInsets()
     const [sliderValue, setSliderValue] = useState(0);
     const [isRepeating, setIsRepeating] = useState(false);
+    const [showSongOptions, setSongOptions] = useState(false)
+    const [showAddPlaylist, setShowAddPlaylist] = useState(false)
+    const toggleSongOptions = () => setSongOptions(!showSongOptions)
+    const toggleAddPlaylist = () => setShowAddPlaylist(!showAddPlaylist)
 
     const { downloadFile, deleteFile } = useDownloadContext();
 
@@ -137,7 +143,7 @@ const SongScreen = () => {
                 <Text numberOfLines={1} style={defaultStyle.header}>
                     {audioContext.currentSong?.title}
                 </Text>
-                <Pressable style={styles.buttonAppBar}>
+                <Pressable style={styles.buttonAppBar} onPress={toggleSongOptions}>
                     <FontAwesome6 name="ellipsis-vertical" size={20} color="black"/>
                 </Pressable>
             </View>
@@ -218,6 +224,8 @@ const SongScreen = () => {
                     </Pressable>
                 </View>
             </View>
+            <SongOptions addPlaylist={toggleAddPlaylist} artist={dataArtist} song={audioContext.currentSong} visible={showSongOptions} onClose={toggleSongOptions} />
+            <AddToPlaylistModal visible={showAddPlaylist} onClose={toggleAddPlaylist} song={audioContext.currentSong} />
         </View>
     )
 }

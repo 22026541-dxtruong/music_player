@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react'
+import React, {useCallback, useEffect, useState} from 'react'
 import {ActivityIndicator, Alert, Animated, FlatList, Pressable, StyleSheet, View} from 'react-native'
 import useFetch from "@/hooks/useFetch";
 import {BASE_URL} from "@/constants/constants";
@@ -11,8 +11,7 @@ import colors from "@/constants/colors";
 import SongListItem from "@/components/SongListItem";
 import SearchBar from "@/components/SearchBar";
 import FloatingPlayer from "@/components/FloatingPlayer";
-import {useLocalSearchParams, useNavigation} from "expo-router";
-import useSearch from "@/hooks/useSearch";
+import {useFocusEffect, useLocalSearchParams, useNavigation} from "expo-router";
 
 const PlaylistScreen = () => {
     const { index } = useLocalSearchParams<{ index: string }>()
@@ -20,24 +19,18 @@ const PlaylistScreen = () => {
     const { data, loading, error, reFetchData } = useFetch<Song[]>(BASE_URL + `playlists/songs?playlist_id=${index}`)
     const navigation = useNavigation()
 
+    useFocusEffect(
+        useCallback(() => {
+            reFetchData()
+        }, [])
+    )
+
     useEffect(() => {
         navigation.setOptions({
             title: playlist?.name || 'Playlist',
             // header: () => null
         })
     }, [data])
-
-    const search = useSearch({
-        searchBarOptions: {
-            placeholder: 'Find in playlist',
-        }
-    });
-
-    const filteredTracks = useMemo(() => {
-        if (!search) return data ?? [];
-        const searchLower = search.toLowerCase();
-        return data ? data.filter(track => track.title.toLowerCase().includes(searchLower)) : [];
-    }, [data, search]);
 
     const [isSearching, setIsSearching] = useState(false)
 
@@ -52,7 +45,7 @@ const PlaylistScreen = () => {
 
     const handleDelete = async (item: Song) => {
         try {
-            await axios.delete(BASE_URL + `playlist/songs/delete?playlist_id=${index}&song_id=${item.song_id}`);
+            await axios.delete(BASE_URL + `playlists/songs/delete?playlist_id=${index}&song_id=${item.song_id}`);
             reFetchData();
         } catch (error) {
             console.error('Error deleting item:', error);
@@ -80,7 +73,7 @@ const PlaylistScreen = () => {
                 <ActivityIndicator style={{flex: 1}} size={"large"} color={"blue"} />
             ) : (
                 <FlatList
-                    data={filteredTracks}
+                    data={data}
                     keyExtractor={(item) => item.song_id.toString()}
                     scrollEnabled={false}
                     renderItem={({item}) =>
@@ -91,7 +84,7 @@ const PlaylistScreen = () => {
                             }
                             overshootLeft={false}
                         >
-                            <SongListItem song={item}/>
+                            <SongListItem song_id={item.song_id}/>
                         </Swipeable>
                     }
                     ItemSeparatorComponent={() => <View style={{height: 10}}/>}

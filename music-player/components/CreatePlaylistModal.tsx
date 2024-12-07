@@ -24,15 +24,22 @@ const CreatePlaylistModal = ({visible, onClose}: Props) => {
         postData({
             name: name,
             user_id: user?.user_id
-        }).catch(err => {
+        }).then(() => setError(null)).catch(err => {
             setError(err)
             return;
         })
         onClose()
     }
+
+    const handlePressOutside = (e: any) => {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
+    };
+
     return (
         <Modal animationType="fade" visible={visible} transparent={true} onRequestClose={onClose}>
-            <Pressable style={styles.container} onPress={onClose}>
+            <Pressable style={styles.container} onPress={handlePressOutside}>
                 <View style={styles.content}>
                     <Text style={{...defaultStyle.title, fontSize: 20}}>Give your playlist a name</Text>
                     <TextInput
@@ -66,7 +73,7 @@ const styles = StyleSheet.create({
     },
     content: {
         width: 300,
-        height: 180,
+        paddingVertical: 10,
         backgroundColor: 'white',
         justifyContent: 'center',
         alignItems: 'center',
