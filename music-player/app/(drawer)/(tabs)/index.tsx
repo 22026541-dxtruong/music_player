@@ -1,5 +1,13 @@
-import React, {useMemo} from 'react'
-import {FlatList, Pressable, StyleSheet, Text, TouchableOpacity, View} from 'react-native'
+import React from 'react'
+import {
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
+} from 'react-native'
 import FloatingPlayer from "@/components/FloatingPlayer";
 import {defaultStyle} from "@/constants/styles";
 import {Redirect, router} from "expo-router";
@@ -11,9 +19,10 @@ import logotext from "@/assets/images/logotext.png";
 import RoundedSquareSong from "@/components/RoundedSquareSong";
 import FloatingDownload from "@/components/FloatingDownload";
 import {useAuthContext} from "@/context/AuthContext";
-import {generateUserColor} from "@/utils/generateColor";
 import {DrawerToggleButton} from "@react-navigation/drawer";
 import CircleAvatar from "@/components/CircleAvatar";
+import SquareAlbum from "@/components/SquareAlbum";
+import SongListItem from "@/components/SongListItem";
 
 const HomeScreen = () => {
     const { user } = useAuthContext()
@@ -22,8 +31,10 @@ const HomeScreen = () => {
         return <Redirect href={'/login'} />
     }
 
-    const { data: dataArtist, loading: loadingArtist, error } = useFetch<Artist[]>(BASE_URL + 'artists')
-    const { data: dataSongs, loading } = useFetch<Song[]>(BASE_URL + 'songs')
+    const { data: hotSongs, loading: loadingHotSongs } = useFetch<Song[]>(BASE_URL + 'hotsongs')
+    const { data: suggestSongs, loading: loadingSuggestSongs } = useFetch<Song[]>(BASE_URL + `suggest/songs?user_id=${user?.user_id}`)
+    const { data: suggestArtists, loading: loadingSuggestArtists } = useFetch<Artist[]>(BASE_URL + `suggest/artists?user_id=${user?.user_id}`)
+    const { data: suggestAlbums, loading: loadingSuggestAlbums } = useFetch<Album[]>(BASE_URL + `suggest/albums?user_id=${user?.user_id}`)
 
     return (
         <View style={defaultStyle.container}>
@@ -35,36 +46,78 @@ const HomeScreen = () => {
                 </View>
             </View>
             <FloatingDownload />
-            <View style={{flex: 1}}>
+            <ScrollView
+                style={{flex: 1}}
+                showsVerticalScrollIndicator={false}
+            >
                 <Text style={{...defaultStyle.title, paddingBottom: 10}}>Hot Recommend</Text>
-                <FlatList
-                    data={dataSongs}
-                    keyExtractor={(item) => item.song_id.toString()}
-                    horizontal={true}
-                    ItemSeparatorComponent={() => <View style={{width: 10}} />}
-                    showsHorizontalScrollIndicator={false}
-                    renderItem={({item}) =>
-                        <RoundedSquareSong song={item} />
-                    }
-                />
-                <Text style={{...defaultStyle.title, paddingBottom: 10}}>Made for you</Text>
+                {loadingHotSongs ?
+                    <ActivityIndicator size={'large'} color={'blue'} /> :
+                    <FlatList
+                        data={hotSongs}
+                        keyExtractor={(item) => item.song_id.toString()}
+                        horizontal={true}
+                        ItemSeparatorComponent={() => <View style={{width: 10}} />}
+                        showsHorizontalScrollIndicator={false}
+                        renderItem={({item}) =>
+                            <RoundedSquareSong song={item} />
+                        }
+                    />
+                }
+                <Text style={{...defaultStyle.title, paddingVertical: 10}}>Made for you</Text>
                 <View style={styles.artistContainer}>
                     <View style={styles.artist}>
-                        <Text>Artists</Text>
-                        <Pressable onPress={() => router.push("/artists")}><Text>See all</Text></Pressable>
+                        <Text style={defaultStyle.title}>Artists</Text>
+                        <Pressable onPress={() => router.push("/artists")}><Text style={styles.text}>See all</Text></Pressable>
                     </View>
-                    <FlatList horizontal={true} keyExtractor={(item) => item.artist_id.toString()}
-                              showsHorizontalScrollIndicator={false} data={dataArtist} renderItem={({item}) =>
-                        <CircleArtist artist={item}/>
-                    }/>
+                    {loadingSuggestArtists ?
+                        <ActivityIndicator size={"large"} color={"blue"} /> :
+                        <FlatList
+                            horizontal={true}
+                            keyExtractor={(item) => item.artist_id.toString()}
+                            showsHorizontalScrollIndicator={false}
+                            data={suggestArtists}
+                            ItemSeparatorComponent={() => <View style={{width: 10}} />}
+                            renderItem={({item}) =>
+                                <CircleArtist artist={item}/>
+                            }
+                        />
+                    }
                 </View>
-                <View>
+                <View style={styles.artistContainer}>
                     <View style={styles.artist}>
-                        <Text>Albums</Text>
+                        <Text style={defaultStyle.title}>Albums</Text>
+                        <Pressable onPress={() => router.push("/albums")}><Text style={styles.text}>See all</Text></Pressable>
                     </View>
-
+                    {loadingSuggestAlbums ?
+                        <ActivityIndicator size={'large'} color={'blue'} /> :
+                        <FlatList
+                            horizontal={true}
+                            keyExtractor={(item) => item.album_id.toString()}
+                            showsHorizontalScrollIndicator={false}
+                            data={suggestAlbums}
+                            ItemSeparatorComponent={() => <View style={{width: 10}} />}
+                            renderItem={({item}) =>
+                                <SquareAlbum album={item}/>
+                            }
+                        />
+                    }
                 </View>
-            </View>
+                <Text style={{...defaultStyle.title, paddingBottom: 10}}>Songs</Text>
+                {loadingSuggestSongs ?
+                    <ActivityIndicator size={'large'} color={'blue'} /> :
+                    <FlatList
+                        data={suggestSongs}
+                        keyExtractor={(item) => item.song_id.toString()}
+                        ItemSeparatorComponent={() => <View style={{height: 10}} />}
+                        showsVerticalScrollIndicator={false}
+                        scrollEnabled={false}
+                        renderItem={({item}) =>
+                            <SongListItem song={item} />
+                        }
+                    />
+                }
+            </ScrollView>
             <FloatingPlayer/>
         </View>
     )
@@ -81,12 +134,21 @@ const styles = StyleSheet.create({
         width: 200,
         height: 50,
     },
-    artistContainer: {},
+    artistContainer: {
+        paddingBottom: 10
+    },
     artist: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center"
+        alignItems: "center",
+        paddingBottom: 10
     },
+    text: {
+        backgroundColor: '#eef5ff',
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderRadius: 20
+    }
 })
 
 export default HomeScreen

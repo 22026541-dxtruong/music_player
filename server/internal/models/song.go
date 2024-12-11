@@ -13,6 +13,5 @@ type Song struct {
     CreatedAt string `json:"created_at"`
 	FilePath  string `json:"file_path"`
 	Image     string `json:"image"`
-	PlayCount int    `json:"play_count"`
 }
 

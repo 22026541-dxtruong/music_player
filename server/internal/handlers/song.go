@@ -77,9 +77,9 @@ func GetSongByID(w http.ResponseWriter, r *http.Request) {
 
     // Truy vấn thông tin bài hát
     err = tx.QueryRow(`
-        SELECT song_id, title, album_id, artist_id, duration, created_at, file_path, image, play_count
+        SELECT song_id, title, album_id, artist_id, duration, created_at, file_path, image
         FROM song
-        WHERE song_id = ?`, songID).Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image, &song.PlayCount)
+        WHERE song_id = ?`, songID).Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image)
 
     if err != nil {
         if err == sql.ErrNoRows {
@@ -89,18 +89,6 @@ func GetSongByID(w http.ResponseWriter, r *http.Request) {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
-
-    // Cập nhật play_count trong bảng song
-    _, err = tx.Exec(`
-        UPDATE song
-        SET play_count = play_count + 1
-        WHERE song_id = ?`, songID)
-    if err != nil {
-        http.Error(w, "failed to update song play_count", http.StatusInternalServerError)
-        return
-    }
-
-    // Cập nhật hoặc thêm mới vào user_song_history
     _, err = tx.Exec(`
         INSERT INTO user_song_history (user_id, song_id, last_played, play_count)
         VALUES (?, ?, CURRENT_TIMESTAMP, 1)
@@ -137,7 +125,7 @@ func GetUserSongHistory(w http.ResponseWriter, r *http.Request) {
 
     // Truy vấn lịch sử bài hát của người dùng
     rows, err := db.DB.Query(`
-        SELECT s.song_id, s.title, s.album_id, s.artist_id, s.duration, s.created_at, s.file_path, s.image, s.play_count
+        SELECT s.song_id, s.title, s.album_id, s.artist_id, s.duration, s.created_at, s.file_path, s.image
         FROM user_song_history sh
         JOIN song s ON s.song_id = sh.song_id
         WHERE sh.user_id = ?
@@ -152,7 +140,7 @@ func GetUserSongHistory(w http.ResponseWriter, r *http.Request) {
     var history []models.Song
     for rows.Next() {
         var songHistory models.Song
-        err := rows.Scan(&songHistory.SongID, &songHistory.Title, &songHistory.AlbumID, &songHistory.ArtistID, &songHistory.Duration, &songHistory.CreatedAt, &songHistory.FilePath, &songHistory.Image, &songHistory.PlayCount)
+        err := rows.Scan(&songHistory.SongID, &songHistory.Title, &songHistory.AlbumID, &songHistory.ArtistID, &songHistory.Duration, &songHistory.CreatedAt, &songHistory.FilePath, &songHistory.Image)
         if err != nil {
             http.Error(w, "failed to scan song history: "+err.Error(), http.StatusInternalServerError)
             return

@@ -99,4 +99,13 @@ func RegisterRoutes() {
     http.HandleFunc("/search/songs/playlist", handlers.SearchSongsInPlaylist)
 	//GET /search/songs/genre?genre_id=1&query=love
 	http.HandleFunc("/search/songs/genre", handlers.SearchSongsInGenre)
+
+	//GET /hotsongs
+	http.HandleFunc("/hotsongs", handlers.GetSongTrend)
+	//GET /suggest/songs
+	http.HandleFunc("/suggest/songs", handlers.GetSongSuggestByUserID)
+	//GET /suggest/albums
+	http.HandleFunc("/suggest/albums", handlers.GetAlbumSuggestByUserID)
+	//GET /suggest/artists
+	http.HandleFunc("/suggest/artists", handlers.GetArtistSuggestByUserID)
 }
