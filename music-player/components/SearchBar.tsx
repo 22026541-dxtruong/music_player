@@ -30,19 +30,6 @@ const SearchBar = ({type, visible, onClose}: Props) => {
     const [loadingHistory, setLoadingHistory] = useState(false)
     const [filterList, setFilterList] = useState<SearchResultItem[]>([])
 
-    // useEffect(() => {
-    //     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-    //         console.log('Back pressed - closing modal');
-    //         if (visible) {
-    //             onClose();
-    //             return true;
-    //         }
-    //         return false;
-    //     });
-    //
-    //     return () => backHandler.remove();
-    // }, [visible, onClose]);
-
     useEffect(() => {
         const fetchHistory = async () => {
             try {
@@ -86,7 +73,7 @@ const SearchBar = ({type, visible, onClose}: Props) => {
     const { data, loading } = useFetch<SearchResultItem[] | null>(BASE_URL + `search?query=${query}` + (type ? `&type=${type}` : ''))
 
     const renderItem = (item: SearchResultItem, onPress?: () => void) => {
-        if (item.type === 'song') return <SongListItem song={item.data as Song} onPress={onPress} />
+        if (item.type === 'song') return <SongListItem song={(item.data as Song)} onPress={onPress} />
         if (item.type === 'album') return <AlbumListItem album={item.data as Album} onPress={onPress} />
         return <ArtistListItem artist={item.data as Artist} onPress={onPress} />
     }
@@ -116,7 +103,7 @@ const SearchBar = ({type, visible, onClose}: Props) => {
                 )}
             />
         );
-    }, [query, data, loading]);
+    }, [query, data, loading, onClose]);
 
     const renderHistory = useCallback(() => {
         if (loadingHistory) return <ActivityIndicator size="large" color={'black'}/>
@@ -134,7 +121,7 @@ const SearchBar = ({type, visible, onClose}: Props) => {
                 )}
             />
         )
-    }, [filterList, history, loadingHistory])
+    }, [filterList, history, loadingHistory, type, onClose])
 
     return (
         <Modal animationType="fade" visible={visible} transparent={false}  onRequestClose={onClose}>

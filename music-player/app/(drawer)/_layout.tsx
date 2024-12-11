@@ -11,7 +11,11 @@ const DrawerLayout = () => {
             <Drawer.Screen name={'(tabs)'}/>
             <Drawer.Screen name={'downloaded'} options={{
                 headerShown: true,
-                title: "Đã tải xuống"
+                title: "Downloaded"
+            }}/>
+            <Drawer.Screen name={'history'} options={{
+                headerShown: true,
+                title: "History"
             }}/>
         </Drawer>
     );

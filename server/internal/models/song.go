@@ -1,6 +1,8 @@
 package models
 
-import "database/sql"
+import (
+    "database/sql"
+)
 
 type Song struct {
     SongID    int    `json:"song_id"`
@@ -11,4 +13,6 @@ type Song struct {
     CreatedAt string `json:"created_at"`
 	FilePath  string `json:"file_path"`
 	Image     string `json:"image"`
+	PlayCount int    `json:"play_count"`
 }
+

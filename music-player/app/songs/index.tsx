@@ -15,7 +15,7 @@ import SearchBar from "@/components/SearchBar";
 
 const SongListScreen = () => {
     const { user } = useAuthContext()
-    const { data, loading, error, reFetchData } = useFetch<FavoriteSong[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)
+    const { data, loading, error, reFetchData } = useFetch<Song[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)
 
     const [isSearching, setIsSearching] = useState(false)
 
@@ -28,9 +28,9 @@ const SongListScreen = () => {
         return null;
     }
 
-    const handleDelete = async (item: FavoriteSong) => {
+    const handleDelete = async (item: Song) => {
         try {
-            await axios.delete(BASE_URL + `favorites/songs/delete?user_id=${user?.user_id}&song_id=${item.song_id}`);
+            await axios.delete(BASE_URL + `songs/history/delete?user_id=${user?.user_id}&song_id=${item.song_id}`);
             reFetchData();
         } catch (error) {
             console.error('Error deleting item:', error);
@@ -40,7 +40,7 @@ const SongListScreen = () => {
     const renderRightActions = (
         progress:  Animated.AnimatedInterpolation<string | number>,
         dragX: Animated.AnimatedInterpolation<string | number>,
-        item: FavoriteSong
+        item: Song
     ) => {
         return (
             <View style={styles.rightAction}>
@@ -69,7 +69,7 @@ const SongListScreen = () => {
                             }
                             overshootLeft={false}
                         >
-                            <SongListItem song_id={item.song_id}/>
+                            <SongListItem song={item}/>
                         </Swipeable>
                     }
                     ItemSeparatorComponent={() => <View style={{height: 10}}/>}

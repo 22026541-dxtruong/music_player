@@ -5,7 +5,6 @@ import {useLocalSearchParams, useNavigation} from "expo-router";
 import {Image} from "expo-image";
 import {LinearGradient} from "expo-linear-gradient";
 import PagerView from "react-native-pager-view";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import SongListItem from "@/components/SongListItem";
 import useFetch from "@/hooks/useFetch";
 import { BASE_URL } from '@/constants/constants';
@@ -45,7 +44,7 @@ const ArtistScreen = () => {
                 renderItem={({item}) => <SongListItem song={item} artist={dataArtists}/>}
             />
          )
-    }, [dataSongs, loadingSongs])
+    }, [dataSongs, loadingSongs, dataArtists])
 
     const renderAlbumList = useCallback(() => {
         if (loadingAlbums) return <ActivityIndicator size={"large"} color={"blue"} />

@@ -142,7 +142,7 @@ const LibraryScreen = () => {
                         }
                         overshootLeft={false}
                     >
-                        <ArtistListItem artist_id={item.artist_id}/>
+                        <ArtistListItem artist={item}/>
                     </Swipeable>
                 }
                 ItemSeparatorComponent={() => <View style={{height: 10}}/>}
@@ -166,7 +166,7 @@ const LibraryScreen = () => {
                         }
                         overshootLeft={false}
                     >
-                        <AlbumListItem album_id={item.album_id}/>
+                        <AlbumListItem album={item}/>
                     </Swipeable>
                 }
                 ItemSeparatorComponent={() => <View style={{height: 10}}/>}

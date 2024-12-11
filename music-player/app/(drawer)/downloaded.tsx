@@ -1,5 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import useSearch from "@/hooks/useSearch";
+import React, {useCallback, useState} from 'react';
 import {ActivityIndicator, Alert, FlatList, Pressable, View} from "react-native";
 import {defaultStyle} from "@/constants/styles";
 import FloatingPlayer from "@/components/FloatingPlayer";
@@ -38,18 +37,6 @@ const DownloadedSongScreen = () => {
         setRefreshing(false);
     };
 
-    const search = useSearch({
-        searchBarOptions: {
-            placeholder: 'Find in songs',
-        },
-    });
-
-    const filteredTracks = useMemo(() => {
-        if (!search) return data ?? [];
-        const searchLower = search.toLowerCase();
-        return data ? data.filter(track => track.title.toLowerCase().includes(searchLower)) : [];
-    }, [data, search]);
-
     if (error) {
         Alert.alert("Error", error.message);
         return null;
@@ -66,7 +53,7 @@ const DownloadedSongScreen = () => {
                 <ActivityIndicator style={{flex: 1}} size={"large"} color={"blue"} />
             ) : (
                 <FlatList
-                    data={filteredTracks}
+                    data={data}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
                     keyExtractor={(item) => item.song_id.toString()}

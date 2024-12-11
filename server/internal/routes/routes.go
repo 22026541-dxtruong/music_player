@@ -32,7 +32,7 @@ func RegisterRoutes() {
     http.HandleFunc("/songs", handlers.GetSongs)
     //GET /songs/by_artist?artist_id=1
     http.HandleFunc("/songs/by_artist", handlers.GetSongsByArtistId)
-    //GET /songs/by_id?song_id=1
+    //GET /songs/by_id?song_id=1&user_id=1
     http.HandleFunc("/songs/by_id", handlers.GetSongByID)
 	//GET /songs?genre_id=1
 	http.HandleFunc("/songs/by_genre", handlers.GetSongsByGenre)
@@ -40,6 +40,11 @@ func RegisterRoutes() {
 	http.HandleFunc("/songs/by_album", handlers.GetSongsByAlbum)
 	//GET /songs?playlist_id=1
 	http.HandleFunc("/songs/by_playlist", handlers.GetSongsByPlaylist)
+	//GET /songs/history?user_id=1
+	http.HandleFunc("/songs/history", handlers.GetUserSongHistory)
+	//DELETE
+	http.HandleFunc("/songs/history/delete", handlers.DeleteSongHistory)
+
 
 	//GET /playlists
     http.HandleFunc("/playlists", handlers.GetPlaylists)

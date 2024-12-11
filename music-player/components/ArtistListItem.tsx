@@ -1,36 +1,26 @@
 import React from 'react';
 import {router} from "expo-router";
 import {Image} from "expo-image";
-import favicon from "@/assets/images/favicon.png";
 import {Pressable, StyleSheet, Text} from "react-native";
 import {defaultStyle} from "@/constants/styles";
-import useFetch from "@/hooks/useFetch";
-import {BASE_URL} from "@/constants/constants";
 
 type Props = {
-    artist_id?: number;
-    artist?: Artist
+    artist: Artist
     onPress?: () => void
 }
 
-const ArtistListItem = ({artist_id, artist, onPress}: Props) => {
-    if (artist_id) {
-        const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${artist_id}`);
-        artist = dataArtist;
-    }
+const ArtistListItem = ({artist, onPress}: Props) => {
     return (
         <Pressable style={styles.container} onPress={() => {
-            if (artist) {
-                router.push(`/artists/${artist.artist_id}`)
-                onPress?.()
-            }
+            router.push(`/artists/${artist.artist_id}`)
+            onPress?.()
         }}>
             <Image
-                source={artist?.image ? {uri: artist.image} : favicon}
+                source={artist.image}
                 priority="normal"
                 style={styles.image}
             />
-            <Text numberOfLines={1} style={defaultStyle.title}>{artist?.name}</Text>
+            <Text numberOfLines={1} style={defaultStyle.title}>{artist.name}</Text>
         </Pressable>
     )
 }

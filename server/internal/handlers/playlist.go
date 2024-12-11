@@ -179,37 +179,58 @@ func CreatePlaylist(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSongsByPlaylistID(w http.ResponseWriter, r *http.Request) {
-	playlistIDStr := r.URL.Query().Get("playlist_id")
-	if playlistIDStr == "" {
-		http.Error(w, "playlist_id is required", http.StatusBadRequest)
-		return
-	}
+    playlistIDStr := r.URL.Query().Get("playlist_id")
+    if playlistIDStr == "" {
+        http.Error(w, "playlist_id is required", http.StatusBadRequest)
+        return
+    }
 
-	playlistID, err := strconv.Atoi(playlistIDStr)
-	if err != nil {
-		http.Error(w, "invalid playlist_id", http.StatusBadRequest)
-		return
-	}
+    playlistID, err := strconv.Atoi(playlistIDStr)
+    if err != nil {
+        http.Error(w, "invalid playlist_id", http.StatusBadRequest)
+        return
+    }
 
-	rows, err := db.DB.Query("SELECT playlist_id, song_id FROM playlist_song WHERE playlist_id = ?", playlistID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
+    rows, err := db.DB.Query(`
+        SELECT 
+            s.song_id, 
+            s.title, 
+            s.album_id, 
+            s.artist_id, 
+            s.duration, 
+            s.file_path, 
+            s.image, 
+            s.created_at
+        FROM 
+            playlist_song ps
+        JOIN 
+            song s ON ps.song_id = s.song_id
+        WHERE 
+            ps.playlist_id = ?`, playlistID)
 
-	var playlistSongs []models.PlaylistSong // Đảm bảo bạn đã định nghĩa model Playlist đúng cách
-	for rows.Next() {
-		var playlistSong models.PlaylistSong
-		if err := rows.Scan(&playlistSong.PlaylistID, &playlistSong.SongID); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		playlistSongs = append(playlistSongs, playlistSong)
-	}
+    if err != nil {
+        http.Error(w, "failed to fetch songs in playlist: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(playlistSongs)
+    var playlistSongs []models.Song // Đảm bảo bạn đã định nghĩa model Song đúng cách
+    for rows.Next() {
+        var song models.Song
+        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.FilePath, &song.Image, &song.CreatedAt); err != nil {
+            http.Error(w, "failed to scan song: "+err.Error(), http.StatusInternalServerError)
+            return
+        }
+        playlistSongs = append(playlistSongs, song)
+    }
+
+    if err = rows.Err(); err != nil {
+        http.Error(w, "failed to iterate over songs: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(playlistSongs)
 }
 
 func DeletePlaylistByID(w http.ResponseWriter, r *http.Request) {

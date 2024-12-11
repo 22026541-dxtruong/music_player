@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react'
 import {Pressable, StyleSheet, Text, View} from 'react-native'
 import {defaultStyle} from "@/constants/styles";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import {useAudioContext} from "@/context/AudioContext";
 import {Image} from "expo-image";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
@@ -20,6 +20,8 @@ import AddToPlaylistModal from "@/components/AddToPlaylistModal";
 
 const SongScreen = () => {
     const { user } = useAuthContext()
+    const { song } = useLocalSearchParams()
+    const { data: dataSong } = useFetch(BASE_URL + `songs/by_id?song_id=${song}&user_id=${user?.user_id}`)
     const audioContext = useAudioContext()
     const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${audioContext.currentSong?.artist_id}`)
     const { data: favoriteSong } = useFetch<FavoriteSong[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)

@@ -25,7 +25,7 @@ const DrawerContent = () => {
             <DrawerItem
                 icon={({size, color}) => <MaterialIcons name="history" size={size} color={color} />}
                 label={'Xem lịch sử'}
-                onPress={() => null}
+                onPress={() => router.push('/(drawer)/history')}
             />
             <DrawerItem
                 icon={({size, color}) => <MaterialIcons name="password" size={size} color={color} />}

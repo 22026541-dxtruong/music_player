@@ -84,7 +84,7 @@ const PlaylistScreen = () => {
                             }
                             overshootLeft={false}
                         >
-                            <SongListItem song_id={item.song_id}/>
+                            <SongListItem song={item}/>
                         </Swipeable>
                     }
                     ItemSeparatorComponent={() => <View style={{height: 10}}/>}
