@@ -31,7 +31,7 @@ const PlaylistListItem = ({playlist, onPress}: Props) => {
             />
             <View style={styles.songAndArtist}>
                 <Text numberOfLines={1} style={defaultStyle.title}>{playlist.name}</Text>
-                <Text numberOfLines={1} style={defaultStyle.subtitle}>{`${data ? data.length : `?`} songs`}</Text>
+                <Text numberOfLines={1} style={defaultStyle.subtitle}>{`${data ? data.length : `0`} songs`}</Text>
             </View>
         </Pressable>
     );

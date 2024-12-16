@@ -7,6 +7,7 @@ import useFetch from "@/hooks/useFetch";
 import {defaultStyle} from "@/constants/styles";
 import {useAudioContext} from "@/context/AudioContext";
 import {LinearGradient} from "expo-linear-gradient";
+import {router} from "expo-router";
 
 type Props = {
     song: Song
@@ -15,9 +16,19 @@ type Props = {
 const RoundedSquareSong = ({song}: Props) => {
     const audioContext = useAudioContext()
     const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${song.artist_id}`)
+
+    const playSong = () => {
+        audioContext.play(song).catch(console.error)
+        router.push(`/songs/${audioContext.currentSong?.song_id}`)
+        if (audioContext.album !== undefined && !audioContext.songList.map(item => item.song_id).includes(song.song_id)) {
+            audioContext.handlePlaySongList().catch(console.error)
+            audioContext.setAlbum(undefined)
+        }
+    }
+
     return (
         <Pressable onPress={() => {
-            audioContext.play(song).catch(console.error)
+            playSong()
         }}>
             <ImageBackground
                 source={song.image ? {uri: song.image} : favicon}

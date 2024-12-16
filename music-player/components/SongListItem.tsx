@@ -19,10 +19,18 @@ const SongListItem = ({song, artist, onPress}: Props) => {
         ? { data: artist }
         : useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${song?.artist_id}`);
 
+    const playSong = () => {
+        audioContext.play(song).catch(console.error)
+        router.navigate(`/songs/${audioContext.currentSong?.song_id}`)
+        if (audioContext.album !== undefined && !audioContext.songList.map(item => item.song_id).includes(song.song_id)) {
+            audioContext.handlePlaySongList().catch(console.error)
+            audioContext.setAlbum(undefined)
+        }
+    }
+
     return (
         <Pressable style={styles.container} disabled={song.song_id === audioContext.currentSong?.song_id} onPress={() => {
-            audioContext.play(song).catch(console.error)
-            router.push(`/songs/${audioContext.currentSong?.song_id}`)
+            playSong()
             onPress?.()
         }}>
             <Image

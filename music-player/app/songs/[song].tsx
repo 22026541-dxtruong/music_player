@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react'
-import {Pressable, StyleSheet, Text, View} from 'react-native'
+import {FlatList, Pressable, StyleSheet, Text, View} from 'react-native'
 import {defaultStyle} from "@/constants/styles";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import {router, useLocalSearchParams} from "expo-router";
+import {router} from "expo-router";
 import {useAudioContext} from "@/context/AudioContext";
 import {Image} from "expo-image";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
@@ -17,30 +17,37 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {useAuthContext} from "@/context/AuthContext";
 import SongOptions from "@/components/SongOptions";
 import AddToPlaylistModal from "@/components/AddToPlaylistModal";
+import SongListItem from "@/components/SongListItem";
 
 const SongScreen = () => {
-    const { user } = useAuthContext()
-    const { song } = useLocalSearchParams()
-    const { data: dataSong } = useFetch(BASE_URL + `songs/by_id?song_id=${song}&user_id=${user?.user_id}`)
+    const {user} = useAuthContext()
     const audioContext = useAudioContext()
-    const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${audioContext.currentSong?.artist_id}`)
-    const { data: favoriteSong } = useFetch<FavoriteSong[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)
-    const { postData: addSong } = useFetch(BASE_URL + `favorites/songs/add`)
-    const { deleteData: deleteSong } = useFetch(BASE_URL + `favorites/songs/delete?user_id=${user?.user_id}&song_id=${audioContext.currentSong?.song_id}`)
+    const {data: dataArtist} = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${audioContext.currentSong?.artist_id}`)
+    const {data: favoriteSong} = useFetch<Song[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)
+    const {postData: addSong} = useFetch(BASE_URL + `favorites/songs/add`)
+    const {deleteData: deleteSong} = useFetch(BASE_URL + `favorites/songs/delete?user_id=${user?.user_id}&song_id=${audioContext.currentSong?.song_id}`)
     const inset = useSafeAreaInsets()
     const [sliderValue, setSliderValue] = useState(0);
-    const [isRepeating, setIsRepeating] = useState(false);
     const [showSongOptions, setSongOptions] = useState(false)
     const [showAddPlaylist, setShowAddPlaylist] = useState(false)
     const toggleSongOptions = () => setSongOptions(!showSongOptions)
     const toggleAddPlaylist = () => setShowAddPlaylist(!showAddPlaylist)
+    const [allowShuffle, setAllowShuffle] = useState<boolean>(false)
 
-    const { downloadFile, deleteFile } = useDownloadContext();
+    useEffect(() => {
+        setAllowShuffle(
+            audioContext.currentSong &&
+            !audioContext.songList.map(item => item.song_id).includes(audioContext.currentSong?.song_id) ||
+            audioContext.album === undefined
+        )
+    }, [audioContext.album, audioContext.currentSong, audioContext.songList]);
+
+    const {downloadFile, deleteFile} = useDownloadContext();
 
     const database = useSQLiteContext()
     const [songDownloaded, setSongDownloaded] = useState<Song[]>([]);
     useEffect(() => {
-        const fetchData = async() => {
+        const fetchData = async () => {
             try {
                 const songs: Song[] = await database.getAllAsync(`SELECT * FROM songs`)
                 setSongDownloaded(songs)
@@ -136,6 +143,8 @@ const SongScreen = () => {
         });
     };
 
+    // @ts-ignore
+    // @ts-ignore
     return (
         <View style={{...defaultStyle.container, paddingTop: inset.top}}>
             <View style={styles.topAppBar}>
@@ -149,8 +158,10 @@ const SongScreen = () => {
                     <FontAwesome6 name="ellipsis-vertical" size={20} color="black"/>
                 </Pressable>
             </View>
-            <FloatingDownload />
-            <View style={styles.contentContainer}>
+            <FloatingDownload/>
+            <View
+                style={styles.contentContainer}
+            >
                 <View style={styles.imageContainer}>
                     <Image
                         source={{uri: audioContext.currentSong?.image}}
@@ -164,25 +175,26 @@ const SongScreen = () => {
                         <Text numberOfLines={1} style={defaultStyle.title}>
                             {audioContext.currentSong?.title}
                         </Text>
-                        <Text numberOfLines={1} onPress={() => router.push(`/artists/${dataArtist?.artist_id}`)} style={defaultStyle.subtitle}>
+                        <Text numberOfLines={1} onPress={() => router.push(`/artists/${dataArtist?.artist_id}`)}
+                              style={defaultStyle.subtitle}>
                             {dataArtist?.name}
                         </Text>
                     </View>
                     <View style={styles.options}>
-                        { isDownloaded ?
+                        {isDownloaded ?
                             <Pressable onPress={() => handleDeleteDownload()}>
-                                <MaterialIcons name="file-download-off" size={24} color="red" />
+                                <MaterialIcons name="file-download-off" size={24} color="red"/>
                             </Pressable> :
                             <Pressable onPress={() => handleDownload()}>
-                                <MaterialIcons name="file-download" size={24} color="black" />
+                                <MaterialIcons name="file-download" size={24} color="black"/>
                             </Pressable>
                         }
-                        { isFavorite ?
+                        {isFavorite ?
                             <Pressable onPress={() => handleDeleteSong()}>
-                                <MaterialIcons name="favorite" size={20} color="red" />
+                                <MaterialIcons name="favorite" size={20} color="red"/>
                             </Pressable> :
                             <Pressable onPress={() => handleAddSong()}>
-                                <MaterialIcons name="favorite-border" size={20} color="black" />
+                                <MaterialIcons name="favorite-border" size={20} color="black"/>
                             </Pressable>
                         }
                     </View>
@@ -202,32 +214,46 @@ const SongScreen = () => {
                     <Text>{!audioContext.loading ? formatTime(audioContext.currentSong?.duration) : '--:--'}</Text>
                 </View>
                 <View style={styles.controller}>
-                    <Pressable>
-                        <FontAwesome6 name="shuffle" size={20} color="black"/>
+                    <Pressable
+                        onPress={audioContext.handleShuffle}
+                        disabled={allowShuffle}
+                        style={{backgroundColor: 'transparent'}}
+                    >
+                        <FontAwesome6 name="shuffle" size={20} color={audioContext.isShuffle ? "#8B5DFF" : "black"}/>
                     </Pressable>
                     <Pressable onPress={audioContext.playPrevious}>
                         <FontAwesome6 name="backward" size={20} color="black"/>
                     </Pressable>
                     <Pressable onPress={audioContext.isPlaying ? audioContext.pause : audioContext.resume}>
                         {audioContext.isPlaying ? (
-                            <FontAwesome6 name="pause" size={24} color="black" />
+                            <FontAwesome6 name="pause" size={24} color="black"/>
                         ) : (
-                            <FontAwesome6 name="play" size={24} color="black" />
+                            <FontAwesome6 name="play" size={24} color="black"/>
                         )}
                     </Pressable>
                     <Pressable onPress={audioContext.playNext}>
                         <FontAwesome6 name="forward" size={20} color="black"/>
                     </Pressable>
                     <Pressable onPress={() => {
-                            setIsRepeating(!isRepeating);
-                            audioContext.toggleRepeat(!isRepeating);
-                        }}>
-                        <FontAwesome6 name="repeat" size={20} color={isRepeating ? "#8B5DFF" : "black"}/>
+                        audioContext.toggleRepeat();
+                    }}>
+                        <FontAwesome6 name="repeat" size={20} color={audioContext.isRepeating ? "#8B5DFF" : "black"}/>
                     </Pressable>
                 </View>
+                {audioContext.album !== undefined && <FlatList
+                    // @ts-ignore
+                    data={audioContext.songList.slice(audioContext.songListIndex + 1)}
+                    keyExtractor={(item) => item.song_id.toString()}
+                    contentInsetAdjustmentBehavior="automatic"
+                    ItemSeparatorComponent={() => <View style={{height: 5}}/>}
+                    renderItem={({item}) => (
+                        <SongListItem song={item}/>
+                    )}
+                />}
             </View>
-            <SongOptions addPlaylist={toggleAddPlaylist} artist={dataArtist} song={audioContext.currentSong} visible={showSongOptions} onClose={toggleSongOptions} />
-            <AddToPlaylistModal visible={showAddPlaylist} onClose={toggleAddPlaylist} song={audioContext.currentSong} />
+            <SongOptions addPlaylist={toggleAddPlaylist} artist={dataArtist} song={audioContext.currentSong}
+                         visible={showSongOptions} onClose={toggleSongOptions}/>
+            <AddToPlaylistModal visible={showAddPlaylist} onClose={toggleAddPlaylist} song={audioContext.currentSong}/>
         </View>
     )
 }

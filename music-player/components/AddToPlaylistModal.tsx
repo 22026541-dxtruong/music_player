@@ -16,6 +16,7 @@ const AddToPlaylistModal = ({visible, onClose, song}: Props) => {
     const { user } = useAuthContext()
     const [error, setError] = useState<any>()
     const { data: dataPlaylist, loading: loadingPlaylist } = useFetch<Playlist[]>(BASE_URL + `playlists/by_user?user_id=${user?.user_id}`);
+
     const { postData } = useFetch(BASE_URL + 'playlists/songs/add')
 
     const [checkedPlaylists, setCheckedPlaylists] = useState<{ [key: number]: boolean }>({});
@@ -79,7 +80,7 @@ const AddToPlaylistModal = ({visible, onClose, song}: Props) => {
                             <Text style={{...defaultStyle.title, color: 'red'}}>Cancel</Text>
                         </Pressable>
                         <Pressable style={styles.create} onPress={handleAddToPlaylist}>
-                            <Text style={{...defaultStyle.title, color: '#8B5DFF'}}>Create</Text>
+                            <Text style={{...defaultStyle.title, color: '#8B5DFF'}}>Add</Text>
                         </Pressable>
                     </View>
                 </View>

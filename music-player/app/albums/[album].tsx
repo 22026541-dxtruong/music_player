@@ -13,17 +13,30 @@ import colors from "@/constants/colors";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import {useAuthContext} from "@/context/AuthContext";
 import SongListItem from "@/components/SongListItem";
+import {useAudioContext} from "@/context/AudioContext";
 
 const AlbumScreen = () => {
-    const {album} = useLocalSearchParams<{ album: string }>()
+    const {album: albumId} = useLocalSearchParams<{ album: string }>()
     const { user } = useAuthContext()
-    const { data: dataAlbum } = useFetch<Album>(BASE_URL + `albums/by_id?album_id=${album}`)
+    const { album, setAlbum, handlePlaySongList, isShuffle, handleShuffle } = useAudioContext()
+    const { data: dataAlbum } = useFetch<Album>(BASE_URL + `albums/by_id?album_id=${albumId}`)
     const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${dataAlbum?.artist_id}`)
-    const { data: dataSongs, loading: loadingSongs, error: errorSongs } = useFetch<Song[]>(BASE_URL + `songs/by_album?album_id=${album}`)
+    const { data: dataSongs, loading: loadingSongs, error: errorSongs } = useFetch<Song[]>(BASE_URL + `songs/by_album?album_id=${albumId}`)
     const { data: favoriteAlbum } = useFetch<FavoriteAlbum[]>(BASE_URL + `favorites/albums?user_id=${user?.user_id}`)
     const { postData: addAlbum } = useFetch(BASE_URL + `favorites/albums/add`)
-    const { deleteData: deleteAlbum } = useFetch(BASE_URL + `favorites/albums/delete?user_id=${user?.user_id}&album_id=${album}`)
+    const { deleteData: deleteAlbum } = useFetch(BASE_URL + `favorites/albums/delete?user_id=${user?.user_id}&album_id=${albumId}`)
     const navigation = useNavigation()
+    const [isPlaying, setIsPlaying] = useState(Number(albumId) === album?.album_id)
+
+    const playAlbum = () => {
+        handlePlaySongList(dataSongs ?? []).catch(console.error)
+        if (isPlaying) {
+            setAlbum(undefined)
+        } else {
+            setAlbum(dataAlbum)
+        }
+        setIsPlaying(prev => !prev)
+    }
 
     useEffect(() => {
         navigation.setOptions({
@@ -52,15 +65,15 @@ const AlbumScreen = () => {
 
     useEffect(() => {
         if (favoriteAlbum) {
-            const isArtistInFavorites = favoriteAlbum.some(item => item.album_id === Number(album));
+            const isArtistInFavorites = favoriteAlbum.some(item => item.album_id === Number(albumId));
             setIsFavorite(isArtistInFavorites);
         }
-    }, [favoriteAlbum, album]);
+    }, [favoriteAlbum, albumId]);
 
     const handleAddAlbum = () => {
         addAlbum({
             user_id: user?.user_id,
-            album_id: Number(album),
+            album_id: Number(albumId),
         }).then(() => {
             setIsFavorite(true);
         }).catch(error => {
@@ -102,11 +115,11 @@ const AlbumScreen = () => {
                     </Pressable>
                 }
                 <View style={styles.activeOption}>
-                    <Pressable>
-                        <FontAwesome6 name="shuffle" size={20} color="black"/>
+                    <Pressable onPress={handleShuffle}>
+                        <FontAwesome6 name="shuffle" size={20} color={isShuffle ? "#8B5DFF" : "black"} />
                     </Pressable>
-                    <Pressable>
-                        <FontAwesome6 name="play" size={24} color="black"/>
+                    <Pressable onPress={playAlbum}>
+                        <FontAwesome6 name={isPlaying ? "pause" : "play"} size={24} color={isPlaying ? "#8B5DFF" : "black"}/>
                     </Pressable>
                 </View>
             </View>
