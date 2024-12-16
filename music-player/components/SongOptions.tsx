@@ -1,11 +1,12 @@
 import React from 'react';
-import {Modal, Pressable, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Modal, Pressable, StyleSheet, Text, TouchableOpacity, View, Share} from "react-native";
 import {defaultStyle} from "@/constants/styles";
 import {Image} from "expo-image";
 import favicon from "@/assets/images/favicon.png";
 import {Ionicons} from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {router} from "expo-router";
+import {useAuthContext} from "@/context/AuthContext";
 
 type Props = {
     visible: boolean,
@@ -16,11 +17,37 @@ type Props = {
 }
 const SongOptions = ({visible, onClose, song, artist, addPlaylist}: Props) => {
 
+    const {user} = useAuthContext()
     const handlePressOutside = (e: any) => {
         if (e.target === e.currentTarget) {
             onClose();
         }
     };
+
+    const shareSong = async () => {
+        if (!song || !artist) {
+            return
+        }
+        try {
+            const result = await Share.share({
+                title: song.title,
+                message: `🎶 ${song.title} - ${artist.name} 🎶\n` +
+                `Được gửi từ ${user?.username}, hy vọng bạn sẽ thích bài hát này! 🎧\n` +
+                `Tìm nghe bài hát đầy đủ tại: ${song.file_path}`,
+            })
+            if (result.action === Share.sharedAction) {
+                if (result.activityType) {
+                    console.log('Share with activity type: ', result.activityType)
+                } else {
+                    console.log('shared')
+                }
+            } else if (result.action === Share.dismissedAction) {
+                console.log('Share dismissed')
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     return (
         <Modal animationType={'fade'} visible={visible} transparent={true} onRequestClose={onClose}>
@@ -51,7 +78,10 @@ const SongOptions = ({visible, onClose, song, artist, addPlaylist}: Props) => {
                         <MaterialIcons name="person" size={30} color="black" />
                         <Text style={defaultStyle.title}>Go to artist</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.option}>
+                    <TouchableOpacity style={styles.option} onPress={() => {
+                        shareSong().catch(console.error)
+                        onClose()
+                    }}>
                         <MaterialIcons name="share" size={30} color="black" />
                         <Text style={defaultStyle.title}>Share</Text>
                     </TouchableOpacity>
