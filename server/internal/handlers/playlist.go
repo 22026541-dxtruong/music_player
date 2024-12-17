@@ -197,8 +197,7 @@ func GetSongsByPlaylistID(w http.ResponseWriter, r *http.Request) {
             s.song_id, 
             s.title, 
             s.album_id, 
-            s.artist_id, 
-            s.duration, 
+            s.artist_id,
             s.file_path, 
             s.image, 
             s.created_at
@@ -219,7 +218,7 @@ func GetSongsByPlaylistID(w http.ResponseWriter, r *http.Request) {
 	api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
-        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.FilePath, &song.Image, &song.CreatedAt); err != nil {
+        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.FilePath, &song.Image, &song.CreatedAt); err != nil {
             http.Error(w, "failed to scan song: "+err.Error(), http.StatusInternalServerError)
             return
         }

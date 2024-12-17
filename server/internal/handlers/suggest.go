@@ -32,7 +32,7 @@ func GetSongTrend(w http.ResponseWriter, r *http.Request) {
 	api := utils.GetAPIUrlAndPort()
 	for rows.Next() {
 		var hotSong models.Song
-		err := rows.Scan(&hotSong.SongID, &hotSong.Title, &hotSong.AlbumID, &hotSong.ArtistID, &hotSong.Duration, &hotSong.CreatedAt, &hotSong.FilePath, &hotSong.Image)
+		err := rows.Scan(&hotSong.SongID, &hotSong.Title, &hotSong.AlbumID, &hotSong.ArtistID, &hotSong.CreatedAt, &hotSong.FilePath, &hotSong.Image)
 		if err != nil {
 			http.Error(w, "failed to scan hot song: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -94,7 +94,7 @@ func GetSongSuggestByUserID(w http.ResponseWriter, r *http.Request) {
 	api := utils.GetAPIUrlAndPort()
 	for rows.Next() {
 		var suggestSong models.Song
-		err := rows.Scan(&suggestSong.SongID, &suggestSong.Title, &suggestSong.AlbumID, &suggestSong.ArtistID, &suggestSong.Duration, &suggestSong.CreatedAt, &suggestSong.FilePath, &suggestSong.Image)
+		err := rows.Scan(&suggestSong.SongID, &suggestSong.Title, &suggestSong.AlbumID, &suggestSong.ArtistID, &suggestSong.CreatedAt, &suggestSong.FilePath, &suggestSong.Image)
 		if err != nil {
 			http.Error(w, "failed to scan suggest song: "+err.Error(), http.StatusInternalServerError)
 			return

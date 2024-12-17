@@ -66,7 +66,7 @@ func SearchAll(w http.ResponseWriter, r *http.Request) {
 
     if searchType == "" || searchType == "song" {
         // Tìm kiếm song và thêm vào kết quả
-        rowsSongs, err := db.DB.Query("SELECT song_id, title, album_id, artist_id, duration, created_at, file_path, image FROM song WHERE title LIKE ? ORDER BY title ASC", "%"+query+"%")
+        rowsSongs, err := db.DB.Query("SELECT song_id, title, album_id, artist_id, created_at, file_path, image FROM song WHERE title LIKE ? ORDER BY title ASC", "%"+query+"%")
         if err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
@@ -76,7 +76,7 @@ func SearchAll(w http.ResponseWriter, r *http.Request) {
         api := utils.GetAPIUrlAndPort()
         for rowsSongs.Next() {
             var song models.Song
-            if err := rowsSongs.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
+            if err := rowsSongs.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
             }

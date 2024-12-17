@@ -11,7 +11,7 @@ import (
 )
 
 func GetSongs(w http.ResponseWriter, r *http.Request) {
-    rows, err := db.DB.Query("SELECT song_id, title, album_id, artist_id, duration, created_at, file_path, image FROM song")
+    rows, err := db.DB.Query("SELECT song_id, title, album_id, artist_id, created_at, file_path, image FROM song")
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -21,7 +21,7 @@ func GetSongs(w http.ResponseWriter, r *http.Request) {
     var songs []models.Song
     for rows.Next() {
         var song models.Song
-        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
+        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
@@ -78,9 +78,9 @@ func GetSongByID(w http.ResponseWriter, r *http.Request) {
 
     // Truy vấn thông tin bài hát
     err = tx.QueryRow(`
-        SELECT song_id, title, album_id, artist_id, duration, created_at, file_path, image
+        SELECT song_id, title, album_id, artist_id, created_at, file_path, image
         FROM song
-        WHERE song_id = ?`, songID).Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image)
+        WHERE song_id = ?`, songID).Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.CreatedAt, &song.FilePath, &song.Image)
 
     if err != nil {
         if err == sql.ErrNoRows {
@@ -126,7 +126,7 @@ func GetUserSongHistory(w http.ResponseWriter, r *http.Request) {
 
     // Truy vấn lịch sử bài hát của người dùng
     rows, err := db.DB.Query(`
-        SELECT s.song_id, s.title, s.album_id, s.artist_id, s.duration, s.created_at, s.file_path, s.image
+        SELECT s.song_id, s.title, s.album_id, s.artist_id, s.created_at, s.file_path, s.image
         FROM user_song_history sh
         JOIN song s ON s.song_id = sh.song_id
         WHERE sh.user_id = ?
@@ -142,7 +142,7 @@ func GetUserSongHistory(w http.ResponseWriter, r *http.Request) {
     api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var songHistory models.Song
-        err := rows.Scan(&songHistory.SongID, &songHistory.Title, &songHistory.AlbumID, &songHistory.ArtistID, &songHistory.Duration, &songHistory.CreatedAt, &songHistory.FilePath, &songHistory.Image)
+        err := rows.Scan(&songHistory.SongID, &songHistory.Title, &songHistory.AlbumID, &songHistory.ArtistID, &songHistory.CreatedAt, &songHistory.FilePath, &songHistory.Image)
         if err != nil {
             http.Error(w, "failed to scan song history: "+err.Error(), http.StatusInternalServerError)
             return
@@ -217,7 +217,7 @@ func GetSongsByGenre(w http.ResponseWriter, r *http.Request) {
     }
 
     rows, err := db.DB.Query(`
-        SELECT s.song_id, s.title, s.album_id, s.artist_id, s.duration, s.created_at, s.file_path, s.image
+        SELECT s.song_id, s.title, s.album_id, s.artist_id, s.created_at, s.file_path, s.image
         FROM song s
         JOIN song_genre sg ON s.song_id = sg.song_id
         WHERE sg.genre_id = ?`, genreID)
@@ -231,7 +231,7 @@ func GetSongsByGenre(w http.ResponseWriter, r *http.Request) {
     api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
-        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
+        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
@@ -257,7 +257,7 @@ func GetSongsByAlbum(w http.ResponseWriter, r *http.Request) {
     }
 
     rows, err := db.DB.Query(`
-        SELECT song_id, title, album_id, artist_id, duration, created_at, file_path, image
+        SELECT song_id, title, album_id, artist_id, created_at, file_path, image
         FROM song
         WHERE album_id = ?`, albumID)
     if err != nil {
@@ -270,7 +270,7 @@ func GetSongsByAlbum(w http.ResponseWriter, r *http.Request) {
     api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
-        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
+        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
@@ -296,7 +296,7 @@ func GetSongsByPlaylist(w http.ResponseWriter, r *http.Request) {
     }
 
     rows, err := db.DB.Query(`
-        SELECT s.song_id, s.title, s.album_id, s.artist_id, s.duration, s.created_at, s.file_path, s.image
+        SELECT s.song_id, s.title, s.album_id, s.artist_id, s.created_at, s.file_path, s.image
         FROM song s
         JOIN playlist_song ps ON s.song_id = ps.song_id
         WHERE ps.playlist_id = ?`, playlistID)
@@ -310,7 +310,7 @@ func GetSongsByPlaylist(w http.ResponseWriter, r *http.Request) {
     api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
-        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
+        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
@@ -336,7 +336,7 @@ func GetSongsByArtistId(w http.ResponseWriter, r *http.Request) {
     }
 
     rows, err := db.DB.Query(`
-        SELECT song_id, title, album_id, artist_id, duration, created_at, file_path, image
+        SELECT song_id, title, album_id, artist_id, created_at, file_path, image
         FROM song
         WHERE artist_id = ?`, artistID)
     if err != nil {
@@ -349,7 +349,7 @@ func GetSongsByArtistId(w http.ResponseWriter, r *http.Request) {
     api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
-        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
+        if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }

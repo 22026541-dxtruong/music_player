@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"music_player/internal/db"
 	"music_player/internal/routes"
@@ -23,12 +24,12 @@ func main() {
     dbPort := os.Getenv("DB_PORT")
     dbName := os.Getenv("DB_NAME")
     port := os.Getenv("PORT")
-    dbConnectionString := dbUser + ":" + dbPassword + "@tcp(" + dbHost + ":" + dbPort + ")/" + dbName
 
-    err = db.InitDB(dbConnectionString)
-    if err != nil {
-        log.Fatal(err)
-    }
+    dbConnectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
+	err = db.InitDB(dbConnectionString)
+	if err != nil {
+		log.Fatalf("Could not connect to database: %v", err)
+	}
     defer db.DB.Close()
     
     http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
