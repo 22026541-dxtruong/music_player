@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import {
     ActivityIndicator,
     FlatList,
@@ -23,6 +23,7 @@ import {DrawerToggleButton} from "@react-navigation/drawer";
 import CircleAvatar from "@/components/CircleAvatar";
 import SquareAlbum from "@/components/SquareAlbum";
 import SongListItem from "@/components/SongListItem";
+import {RefreshControl} from "react-native-gesture-handler";
 
 const HomeScreen = () => {
     const { user } = useAuthContext()
@@ -31,10 +32,22 @@ const HomeScreen = () => {
         return <Redirect href={'/login'} />
     }
 
-    const { data: hotSongs, loading: loadingHotSongs } = useFetch<Song[]>(BASE_URL + 'hotsongs')
-    const { data: suggestSongs, loading: loadingSuggestSongs } = useFetch<Song[]>(BASE_URL + `suggest/songs?user_id=${user?.user_id}`)
-    const { data: suggestArtists, loading: loadingSuggestArtists } = useFetch<Artist[]>(BASE_URL + `suggest/artists?user_id=${user?.user_id}`)
-    const { data: suggestAlbums, loading: loadingSuggestAlbums } = useFetch<Album[]>(BASE_URL + `suggest/albums?user_id=${user?.user_id}`)
+    const { data: hotSongs, loading: loadingHotSongs, reFetchData: reFetchHotSongs } = useFetch<Song[]>(BASE_URL + 'hotsongs')
+    const { data: suggestSongs, loading: loadingSuggestSongs, reFetchData: reFetchSuggestSongs } = useFetch<Song[]>(BASE_URL + `suggest/songs?user_id=${user?.user_id}`)
+    const { data: suggestArtists, loading: loadingSuggestArtists, reFetchData: reFetchSuggestArtists } = useFetch<Artist[]>(BASE_URL + `suggest/artists?user_id=${user?.user_id}`)
+    const { data: suggestAlbums, loading: loadingSuggestAlbums, reFetchData: reFetchSuggestAlbums } = useFetch<Album[]>(BASE_URL + `suggest/albums?user_id=${user?.user_id}`)
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await Promise.all([
+            reFetchHotSongs(),
+            reFetchSuggestSongs(),
+            reFetchSuggestArtists(),
+            reFetchSuggestAlbums(),
+        ]);
+        setRefreshing(false);
+    };
 
     return (
         <View style={defaultStyle.container}>
@@ -49,6 +62,13 @@ const HomeScreen = () => {
             <ScrollView
                 style={{flex: 1}}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={() => onRefresh()}
+                        colors={['blue']}
+                    />
+                }
             >
                 <Text style={{...defaultStyle.title, paddingBottom: 10}}>Hot Recommend</Text>
                 {loadingHotSongs ?

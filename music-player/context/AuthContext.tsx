@@ -12,6 +12,7 @@ type AuthContextType = {
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, username: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
+    deleteAccount: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -110,8 +111,28 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
+    const deleteAccount = async () => {
+        try {
+            setIsLoading(true);
+            const response = await axios.delete(BASE_URL + `delete?user_id=${user?.user_id}`)
+            if (response.status === 200 && response.data) {
+                await AsyncStorage.clear();
+                setUser(null)
+                router.replace('/login')
+            } else {
+                console.log(response.data)
+                setError('Delete account failed');
+            }
+        } catch (error) {
+            console.error(error);
+            setError('Delete account failed');
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     return (
-        <AuthContext.Provider value={{ user, isLoading, error, login, register, logout }}>
+        <AuthContext.Provider value={{ user, isLoading, error, login, register, logout, deleteAccount }}>
             {children}
         </AuthContext.Provider>
     );

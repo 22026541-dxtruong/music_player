@@ -125,6 +125,53 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Lấy user_id từ query string
+	userIDStr := r.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(w, "user_id is required", http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	// Kiểm tra xem user có tồn tại không
+	var exists bool
+	err = db.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM user WHERE user_id = ?)", userID).Scan(&exists)
+	if err != nil {
+		fmt.Printf("Error checking user existence: %v", err)
+		http.Error(w, "Error checking user existence", http.StatusInternalServerError)
+		return
+	}
+
+	if !exists {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Xóa user từ database
+	_, err = db.DB.Exec("DELETE FROM user WHERE user_id = ?", userID)
+	if err != nil {
+		http.Error(w, "Error deleting user", http.StatusInternalServerError)
+		return
+	}
+
+	// Phản hồi thành công
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	response := map[string]string{"message": "User deleted successfully"}
+	json.NewEncoder(w).Encode(response)
+}
+
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.DB.Query("SELECT user_id, username, email, created_at FROM user")
 	if err != nil {

@@ -22,6 +22,7 @@ import SongListItem from "@/components/SongListItem";
 const SongScreen = () => {
     const {user} = useAuthContext()
     const audioContext = useAudioContext()
+    const {data: dataSong} = useFetch<Song>(BASE_URL + `songs/by_id?song_id=${audioContext.currentSong?.song_id}&user_id=${user?.user_id}`)
     const {data: dataArtist} = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${audioContext.currentSong?.artist_id}`)
     const {data: favoriteSong} = useFetch<Song[]>(BASE_URL + `favorites/songs?user_id=${user?.user_id}`)
     const {postData: addSong} = useFetch(BASE_URL + `favorites/songs/add`)
@@ -36,9 +37,9 @@ const SongScreen = () => {
 
     useEffect(() => {
         setAllowShuffle(
-            audioContext.currentSong &&
+            !(audioContext.currentSong &&
             !audioContext.songList.map(item => item.song_id).includes(audioContext.currentSong?.song_id) ||
-            audioContext.album === undefined
+            audioContext.album === undefined)
         )
     }, [audioContext.album, audioContext.currentSong, audioContext.songList]);
 
@@ -216,10 +217,9 @@ const SongScreen = () => {
                 <View style={styles.controller}>
                     <Pressable
                         onPress={audioContext.handleShuffle}
-                        disabled={allowShuffle}
-                        style={{backgroundColor: 'transparent'}}
+                        disabled={!allowShuffle}
                     >
-                        <FontAwesome6 name="shuffle" size={20} color={audioContext.isShuffle ? "#8B5DFF" : "black"}/>
+                        <FontAwesome6 name="shuffle" size={20} color={allowShuffle ? (audioContext.isShuffle ? "#8B5DFF" : "black") : "gray"}/>
                     </Pressable>
                     <Pressable onPress={audioContext.playPrevious}>
                         <FontAwesome6 name="backward" size={20} color="black"/>

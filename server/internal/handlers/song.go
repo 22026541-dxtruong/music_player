@@ -1,12 +1,13 @@
 package handlers
 
 import (
-    "encoding/json"
-    "net/http"
-    "music_player/internal/models"
-    "music_player/internal/db"
-    "database/sql"
-    "strconv"
+	"database/sql"
+	"encoding/json"
+	"music_player/internal/db"
+	"music_player/internal/models"
+    "music_player/internal/utils"
+	"net/http"
+	"strconv"
 )
 
 func GetSongs(w http.ResponseWriter, r *http.Request) {
@@ -138,6 +139,7 @@ func GetUserSongHistory(w http.ResponseWriter, r *http.Request) {
     defer rows.Close()
 
     var history []models.Song
+    api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var songHistory models.Song
         err := rows.Scan(&songHistory.SongID, &songHistory.Title, &songHistory.AlbumID, &songHistory.ArtistID, &songHistory.Duration, &songHistory.CreatedAt, &songHistory.FilePath, &songHistory.Image)
@@ -145,6 +147,7 @@ func GetUserSongHistory(w http.ResponseWriter, r *http.Request) {
             http.Error(w, "failed to scan song history: "+err.Error(), http.StatusInternalServerError)
             return
         }
+        songHistory.FilePath = api + songHistory.FilePath
         history = append(history, songHistory)
     }
 
@@ -224,13 +227,15 @@ func GetSongsByGenre(w http.ResponseWriter, r *http.Request) {
     }
     defer rows.Close()
 
-    var songs []models.Song // Đảm bảo bạn đã định nghĩa model Song đúng cách
+    var songs []models.Song 
+    api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
         if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
+        song.FilePath = api + song.FilePath
         songs = append(songs, song)
     }
 
@@ -261,13 +266,15 @@ func GetSongsByAlbum(w http.ResponseWriter, r *http.Request) {
     }
     defer rows.Close()
 
-    var songs []models.Song // Đảm bảo bạn đã định nghĩa model Song đúng cách
+    var songs []models.Song
+    api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
         if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
+        song.FilePath = api + song.FilePath
         songs = append(songs, song)
     }
 
@@ -299,13 +306,15 @@ func GetSongsByPlaylist(w http.ResponseWriter, r *http.Request) {
     }
     defer rows.Close()
 
-    var songs []models.Song // Đảm bảo bạn đã định nghĩa model Song đúng cách
+    var songs []models.Song
+    api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
         if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
+        song.FilePath = api + song.FilePath
         songs = append(songs, song)
     }
 
@@ -337,12 +346,14 @@ func GetSongsByArtistId(w http.ResponseWriter, r *http.Request) {
     defer rows.Close()
 
     var songs []models.Song
+    api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
         if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
         }
+        song.FilePath = api + song.FilePath
         songs = append(songs, song)
     }
 

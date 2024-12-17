@@ -2,7 +2,7 @@ import {useAuthContext} from "@/context/AuthContext";
 import useFetch from "@/hooks/useFetch";
 import {BASE_URL} from "@/constants/constants";
 import React, {useCallback, useState} from "react";
-import {ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, View} from "react-native";
+import {ActivityIndicator, Alert, FlatList, Pressable, View} from "react-native";
 import axios from "axios";
 import {AntDesign} from "@expo/vector-icons";
 import {defaultStyle} from "@/constants/styles";
@@ -51,7 +51,6 @@ const HistoryScreen = () => {
                     keyExtractor={(item) => item.song_id.toString()}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
-                    scrollEnabled={false}
                     renderItem={({item}) =>
                         <View style={{flexDirection: "row", justifyContent: 'space-between', alignItems: 'center'}}>
                             <SongListItem song={item}/>

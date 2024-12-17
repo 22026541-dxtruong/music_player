@@ -9,7 +9,7 @@ import colors from "@/constants/colors";
 import {router} from "expo-router";
 
 const DrawerContent = () => {
-    const { user, logout } = useAuthContext()
+    const { user, logout, deleteAccount } = useAuthContext()
 
     return (
         <DrawerContentScrollView >
@@ -35,7 +35,7 @@ const DrawerContent = () => {
             <DrawerItem
                 icon={({size}) => <MaterialIcons name="delete" size={size} color={'red'} />}
                 label={() => <Text style={{color: colors.error}}>Xóa tài khoản</Text>}
-                onPress={() => null}
+                onPress={() => deleteAccount()}
             />
             <DrawerItem
                 icon={({size, color}) => <MaterialIcons name="logout" size={size} color={color} />}

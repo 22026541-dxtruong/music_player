@@ -12,6 +12,7 @@ import AlbumListItem from "@/components/AlbumListItem";
 import {useAuthContext} from "@/context/AuthContext";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import colors from "@/constants/colors";
+import FloatingPlayer from "@/components/FloatingPlayer";
 
 const ArtistScreen = () => {
     const {artist} = useLocalSearchParams<{ artist: string }>()
@@ -135,6 +136,7 @@ const ArtistScreen = () => {
                     {renderAlbumList()}
                 </View>
             </PagerView>
+            <FloatingPlayer/>
         </View>
     )
 }

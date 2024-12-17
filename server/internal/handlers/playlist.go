@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"music_player/internal/db"
 	"music_player/internal/models"
+	"music_player/internal/utils"
 	"net/http"
 	"strconv"
 )
@@ -214,13 +215,15 @@ func GetSongsByPlaylistID(w http.ResponseWriter, r *http.Request) {
     }
     defer rows.Close()
 
-    var playlistSongs []models.Song // Đảm bảo bạn đã định nghĩa model Song đúng cách
+    var playlistSongs []models.Song
+	api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
         if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.FilePath, &song.Image, &song.CreatedAt); err != nil {
             http.Error(w, "failed to scan song: "+err.Error(), http.StatusInternalServerError)
             return
         }
+		song.FilePath = api + song.FilePath
         playlistSongs = append(playlistSongs, song)
     }
 

@@ -18,7 +18,7 @@ import {useAudioContext} from "@/context/AudioContext";
 const AlbumScreen = () => {
     const {album: albumId} = useLocalSearchParams<{ album: string }>()
     const { user } = useAuthContext()
-    const { album, setAlbum, handlePlaySongList, isShuffle, handleShuffle } = useAudioContext()
+    const { album, setAlbum, handlePlaySongList, isShuffle, handleShuffle, songList, currentSong } = useAudioContext()
     const { data: dataAlbum } = useFetch<Album>(BASE_URL + `albums/by_id?album_id=${albumId}`)
     const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${dataAlbum?.artist_id}`)
     const { data: dataSongs, loading: loadingSongs, error: errorSongs } = useFetch<Song[]>(BASE_URL + `songs/by_album?album_id=${albumId}`)
@@ -27,6 +27,15 @@ const AlbumScreen = () => {
     const { deleteData: deleteAlbum } = useFetch(BASE_URL + `favorites/albums/delete?user_id=${user?.user_id}&album_id=${albumId}`)
     const navigation = useNavigation()
     const [isPlaying, setIsPlaying] = useState(Number(albumId) === album?.album_id)
+    const [allowShuffle, setAllowShuffle] = useState<boolean>(false)
+
+    useEffect(() => {
+        setAllowShuffle(
+            !(currentSong &&
+                !songList.map(item => item.song_id).includes(currentSong?.song_id) ||
+                album === undefined)
+        )
+    }, [album, currentSong, songList]);
 
     const playAlbum = () => {
         handlePlaySongList(dataSongs ?? []).catch(console.error)
@@ -115,8 +124,11 @@ const AlbumScreen = () => {
                     </Pressable>
                 }
                 <View style={styles.activeOption}>
-                    <Pressable onPress={handleShuffle}>
-                        <FontAwesome6 name="shuffle" size={20} color={isShuffle ? "#8B5DFF" : "black"} />
+                    <Pressable
+                        onPress={handleShuffle}
+                        disabled={!allowShuffle}
+                    >
+                        <FontAwesome6 name="shuffle" size={20} color={allowShuffle ? (isShuffle ? "#8B5DFF" : "black") : "gray"} />
                     </Pressable>
                     <Pressable onPress={playAlbum}>
                         <FontAwesome6 name={isPlaying ? "pause" : "play"} size={24} color={isPlaying ? "#8B5DFF" : "black"}/>

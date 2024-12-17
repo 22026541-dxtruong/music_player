@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"music_player/internal/db"
 	"music_player/internal/models"
+	"music_player/internal/utils"
 	"net/http"
 	"strconv"
 )
 
-// AddFavoriteArtist thêm nghệ sĩ vào danh sách yêu thích
 func AddFavoriteArtistByUserID(w http.ResponseWriter, r *http.Request) {
 	var reqBody models.FavoriteArtist
 
@@ -242,12 +242,14 @@ func GetFavoriteSongsByUserID(w http.ResponseWriter, r *http.Request) {
     defer rows.Close()
 
     var favoriteSongs []models.Song
+	api := utils.GetAPIUrlAndPort()
     for rows.Next() {
         var song models.Song
         if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.Duration, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
             http.Error(w, "failed to scan song: "+err.Error(), http.StatusInternalServerError)
             return
         }
+		song.FilePath = api + song.FilePath
         favoriteSongs = append(favoriteSongs, song)
     }
 

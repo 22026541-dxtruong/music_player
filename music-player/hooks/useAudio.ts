@@ -150,6 +150,7 @@ const useAudio = () => {
 
     const handlePlaySongList = useCallback(async (data?: Song[]) => {
         if (!autoNext && data) {
+            setIsShuffle(false)
             setSongList(data)
             setSongListIndex(0)
             if (currentSong && currentSong.song_id === data[0].song_id) {
@@ -164,18 +165,18 @@ const useAudio = () => {
             setSongListIndex(undefined)
         }
         setIsAutoNext(prev => !prev)
-    }, [autoNext])
+    }, [autoNext, currentSong, isPlaying, play, resume])
 
     const handleShuffle = useCallback(() => {
         if (isShuffle) {
             setSongList(prevSongList);
         } else {
             setPrevSongList(songList);
-            setSongList(prev => shuffleSongList(prev, currentSongIndex || 0));
+            setSongList(prev => shuffleSongList(prev, songListIndex || 0));
             console.log('shuffle')
         }
         setIsShuffle(prev => !prev);
-    }, [isShuffle, prevSongList, songList, currentSongIndex]);
+    }, [isShuffle, prevSongList, songList, songListIndex]);
 
     useEffect(() => {
         if (sound.current) {
