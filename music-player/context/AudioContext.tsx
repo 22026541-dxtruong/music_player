@@ -22,6 +22,7 @@ type AudioContextType = {
     isShuffle: boolean;
     handleShuffle: () => void;
     songListIndex: number | undefined;
+    stopAllAudio: () => Promise<void>;
 };
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);

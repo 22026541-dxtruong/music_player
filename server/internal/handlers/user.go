@@ -55,74 +55,73 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
-		return
-	}
+    if r.Method != http.MethodPost {
+        http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+        return
+    }
 
-	var newUser struct {
-		Username string `json:"username"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-	fmt.Println("Data:", r.Body)
-	// Decode the request body to get user details
-	err := json.NewDecoder(r.Body).Decode(&newUser)
-	fmt.Println("Received user data:", newUser)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+    var newUser struct {
+        Username string `json:"username"`
+        Email    string `json:"email"`
+        Password string `json:"password"`
+    }
+    err := json.NewDecoder(r.Body).Decode(&newUser)
+    if err != nil {
+        http.Error(w, "Invalid request body", http.StatusBadRequest)
+        return
+    }
 
-	var existingUser models.User
-	query := `SELECT user_id, username, email FROM user WHERE email = ?`
-	err = db.DB.QueryRow(query, newUser.Email).Scan(&existingUser.UserID, &existingUser.Username, &existingUser.Email)
+    // Kiểm tra xem email đã được đăng ký chưa
+    var existingUser models.User
+    query := `SELECT user_id, username, email FROM user WHERE email = ?`
+    err = db.DB.QueryRow(query, newUser.Email).Scan(&existingUser.UserID, &existingUser.Username, &existingUser.Email)
 
-	if err == nil {
-		// Nếu không có lỗi, tức là email đã tồn tại
-		http.Error(w, "Email already registered", http.StatusBadRequest)
-		return
-	}
+    if err == nil {
+        // Nếu không có lỗi thì email đã tồn tại
+        http.Error(w, "Email already registered", http.StatusBadRequest)
+        return
+    }
 
-	if err != nil && err.Error() != "sql: no rows in result set" {
-		http.Error(w, "Error checking email", http.StatusInternalServerError)
-		return
-	}
+    // Kiểm tra lỗi khác (ngoài việc không tìm thấy kết quả)
+    if err != nil && err.Error() != "sql: no rows in result set" {
+        http.Error(w, "Error checking email", http.StatusInternalServerError)
+        return
+    }
 
-	// Hash the password before storing it in the database
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
-	if err != nil {
-		http.Error(w, "Error hashing password", http.StatusInternalServerError)
-		return
-	}
-	newUser.Password = string(hashedPassword)
+    // Mã hóa mật khẩu trước khi lưu vào cơ sở dữ liệu
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
+    if err != nil {
+        http.Error(w, "Error hashing password", http.StatusInternalServerError)
+        return
+    }
+    newUser.Password = string(hashedPassword)
 
-	// Insert the new user into the database
-	query = `INSERT INTO user (username, email, password) VALUES (?, ?, ?)`
-	_, err = db.DB.Exec(query, newUser.Username, newUser.Email, newUser.Password)
-	if err != nil {
-		http.Error(w, "Error saving user to the database", http.StatusInternalServerError)
-		return
-	}
+    // Chèn người dùng mới vào cơ sở dữ liệu
+    query = `INSERT INTO user (username, email, password) VALUES (?, ?, ?)`
+    _, err = db.DB.Exec(query, newUser.Username, newUser.Email, newUser.Password)
+    if err != nil {
+        http.Error(w, "Error saving user to the database", http.StatusInternalServerError)
+        return
+    }
 
-	// Truy vấn lại để lấy thông tin người dùng vừa chèn vào, dựa vào email (hoặc username nếu muốn)
-	var user models.User
-	query = `SELECT user_id, username FROM user WHERE email = ?`
-	err = db.DB.QueryRow(query, newUser.Email).Scan(&user.UserID, &user.Username)
-	if err != nil {
-		http.Error(w, "Error retrieving user ID", http.StatusInternalServerError)
-		return
-	}
+    // Truy vấn lại để lấy thông tin người dùng vừa thêm vào
+    var user models.User
+    query = `SELECT user_id, username FROM user WHERE email = ?`
+    err = db.DB.QueryRow(query, newUser.Email).Scan(&user.UserID, &user.Username)
+    if err != nil {
+        http.Error(w, "Error retrieving user ID", http.StatusInternalServerError)
+        return
+    }
 
-	// Trả về user_id và username cho người dùng
-	response := map[string]interface{}{
-		"user_id":  user.UserID,
-		"username": user.Username,
-	}
+    // Trả về thông tin user
+    response := map[string]interface{}{
+        "user_id":  user.UserID,
+        "username": user.Username,
+    }
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(response)
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(response)
 }
 
 func DeleteAccount(w http.ResponseWriter, r *http.Request) {

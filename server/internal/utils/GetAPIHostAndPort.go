@@ -7,12 +7,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func GetAPIUrlAndPort() string {
+func GetAPIHostAndPort() string {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	apiUrl := os.Getenv("API_HOST")
+	apiHost := os.Getenv("API_HOST")
 	port := os.Getenv("PORT")
-	return apiUrl + ":" + port + "/public/"
+	return apiHost + ":" + port + "/public/"
 }

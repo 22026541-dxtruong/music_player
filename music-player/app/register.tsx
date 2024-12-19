@@ -7,13 +7,14 @@ import {router} from "expo-router";
 import {Image} from "expo-image";
 import imageLogo from "@/assets/images/favicon.png"
 import imageText from "@/assets/images/text.png"
+import colors from "@/constants/colors";
 
 const RegisterScreen = () => {
     const inset = useSafeAreaInsets()
     const [username, setUsername] = useState<string>('')
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
-    const { register } = useAuthContext()
+    const { register, error, setError } = useAuthContext()
 
     return (
         <View style={{...styles.container, paddingTop: inset.top}}>
@@ -41,9 +42,13 @@ const RegisterScreen = () => {
             <Pressable style={styles.button} onPress={() => register(email, username, password)}>
                 <Text style={{...defaultStyle.title, color: 'white', textAlign: 'center'}}>Register</Text>
             </Pressable>
+            {error && <Text style={{color: colors.error}}>{error}</Text>}
             <View style={styles.buttonText} >
                 <Text style={defaultStyle.title}>Đã có tài khoản?</Text>
-                <Pressable onPress={() => router.replace('/login')}>
+                <Pressable onPress={() => {
+                    setError(null)
+                    router.replace('/login')
+                }}>
                     <Text style={{...defaultStyle.title, color: '#8B5DFF'}}>Login</Text>
                 </Pressable>
             </View>

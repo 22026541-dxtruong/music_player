@@ -29,7 +29,7 @@ func GetSongTrend(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	var hotSongs []models.Song
-	api := utils.GetAPIUrlAndPort()
+	api := utils.GetAPIHostAndPort()
 	for rows.Next() {
 		var hotSong models.Song
 		err := rows.Scan(&hotSong.SongID, &hotSong.Title, &hotSong.AlbumID, &hotSong.ArtistID, &hotSong.CreatedAt, &hotSong.FilePath, &hotSong.Image)
@@ -91,7 +91,7 @@ func GetSongSuggestByUserID(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	var suggestSongs []models.Song
-	api := utils.GetAPIUrlAndPort()
+	api := utils.GetAPIHostAndPort()
 	for rows.Next() {
 		var suggestSong models.Song
 		err := rows.Scan(&suggestSong.SongID, &suggestSong.Title, &suggestSong.AlbumID, &suggestSong.ArtistID, &suggestSong.CreatedAt, &suggestSong.FilePath, &suggestSong.Image)

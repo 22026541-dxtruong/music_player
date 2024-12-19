@@ -241,7 +241,7 @@ func GetFavoriteSongsByUserID(w http.ResponseWriter, r *http.Request) {
     defer rows.Close()
 
     var favoriteSongs []models.Song
-	api := utils.GetAPIUrlAndPort()
+	api := utils.GetAPIHostAndPort()
     for rows.Next() {
         var song models.Song
         if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {

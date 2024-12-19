@@ -49,8 +49,21 @@ const SongScreen = () => {
     const [songDownloaded, setSongDownloaded] = useState<Song[]>([]);
     useEffect(() => {
         const fetchData = async () => {
+            if (!user) return;
             try {
-                const songs: Song[] = await database.getAllAsync(`SELECT * FROM songs`)
+                const songs: Song[] = await database.getAllAsync(`
+                    SELECT 
+                        s.song_id,
+                        s.title,
+                        s.album_id,
+                        s.artist_id,
+                        s.image,
+                        s.file_path
+                    FROM songs s 
+                    JOIN user_download_song udl
+                    ON s.song_id = udl.song_id
+                    WHERE udl.user_id = ${user.user_id}
+                `)
                 setSongDownloaded(songs)
             } catch (error: any) {
                 console.error(error)
@@ -79,11 +92,11 @@ const SongScreen = () => {
 
     const handleDownload = async () => {
         const song = audioContext.currentSong
-        if (!song) {
+        if (!song || !user) {
             return
         }
         try {
-            await downloadFile(song)
+            await downloadFile(song, user.user_id)
             setIsDownloaded(true)
         } catch (error: any) {
             console.log(error)
@@ -92,11 +105,11 @@ const SongScreen = () => {
 
     const handleDeleteDownload = async () => {
         const song = audioContext.currentSong
-        if (!song) {
+        if (!song || !user) {
             return
         }
         try {
-            await deleteFile(song)
+            await deleteFile(song, user.user_id)
             setIsDownloaded(false)
         } catch (error: any) {
             console.log(error)
@@ -144,8 +157,6 @@ const SongScreen = () => {
         });
     };
 
-    // @ts-ignore
-    // @ts-ignore
     return (
         <View style={{...defaultStyle.container, paddingTop: inset.top}}>
             <View style={styles.topAppBar}>

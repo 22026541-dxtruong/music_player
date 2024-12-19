@@ -3,10 +3,10 @@ import useDownload from "@/hooks/useDownload";
 
 type DownloadContextType = {
     downloadSong: Song | null
-    downloadFile: (song: Song) => Promise<undefined | string>
+    downloadFile: (song: Song, userId: number) => Promise<undefined | string>
     isCanceled: boolean
     isDownloading: boolean
-    deleteFile: (song: Song) => Promise<void>
+    deleteFile: (song: Song, userId: number) => Promise<void>
     downloadProgress: number
     error: string | null
     cancelDownload: () => void

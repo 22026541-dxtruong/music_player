@@ -137,6 +137,17 @@ const useAudio = () => {
         }
     }, [])
 
+    const stopAllAudio = useCallback(async () => {
+        if (sound.current) {
+            await sound.current.unloadAsync();
+        }
+        setIsPlaying(false);
+        setCurrentSong(null);
+        setSongList([]);
+        setSongListIndex(undefined);
+        setPrevSongList([]);
+    }, []);
+
     const toggleRepeat = useCallback(async () => {
         setIsRepeating(prev => !prev);
     }, []);
@@ -221,8 +232,9 @@ const useAudio = () => {
         isShuffle,
         handleShuffle,
         songListIndex,
-        isRepeating
-    }), [isRepeating, songListIndex, isShuffle, handleShuffle, songList, autoNext, handlePlaySongList ,currentSong, isPlaying, playNext, playPrevious, play, pause, resume, getCurrentPosition, setPosition, loading]);
+        isRepeating,
+        stopAllAudio
+    }), [stopAllAudio, isRepeating, songListIndex, isShuffle, handleShuffle, songList, autoNext, handlePlaySongList ,currentSong, isPlaying, playNext, playPrevious, play, pause, resume, getCurrentPosition, setPosition, loading]);
 };
 
 export default useAudio;

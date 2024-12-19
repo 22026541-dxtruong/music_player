@@ -215,7 +215,7 @@ func GetSongsByPlaylistID(w http.ResponseWriter, r *http.Request) {
     defer rows.Close()
 
     var playlistSongs []models.Song
-	api := utils.GetAPIUrlAndPort()
+	api := utils.GetAPIHostAndPort()
     for rows.Next() {
         var song models.Song
         if err := rows.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.FilePath, &song.Image, &song.CreatedAt); err != nil {

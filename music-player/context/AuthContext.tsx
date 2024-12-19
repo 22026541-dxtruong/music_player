@@ -13,6 +13,7 @@ type AuthContextType = {
     register: (email: string, username: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     deleteAccount: () => Promise<void>;
+    setError: React.Dispatch<React.SetStateAction<string | null>>
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,9 +55,10 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
             if (response.status === 200 && response.data) {
                 await AsyncStorage.setItem('user', JSON.stringify(response.data));
                 setUser(response.data);
-                const statement = await database.prepareAsync(`INSERT OR REPLACE INTO users (user_id, username) VALUES (?, ?)`)
+                const statement = await database.prepareAsync(`INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)`)
                 await statement.executeAsync(response.data.user_id, response.data.username)
-                router.push('/');
+                router.replace('/');
+                setError(null)
             } else {
                 setError('Login failed');
             }
@@ -78,14 +80,13 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
                 password: password
             })
 
-            console.log(response.data)
-
             if (response.status === 201 && response.data) {
                 await AsyncStorage.setItem('user', JSON.stringify(response.data));
                 setUser(response.data);
-                const statement = await database.prepareAsync(`INSERT OR REPLACE INTO users (user_id, username) VALUES (?, ?)`)
+                const statement = await database.prepareAsync(`INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)`)
                 await statement.executeAsync(response.data.user_id, response.data.username)
                 router.replace('/');
+                setError(null)
             } else {
                 setError('Registration failed');
             }
@@ -103,6 +104,7 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
             await AsyncStorage.clear();
             setUser(null)
             router.replace('/login')
+            setError(null)
         } catch (err) {
             console.error(err);
             setError('Logout failed');
@@ -112,13 +114,17 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const deleteAccount = async () => {
+        if (!user) return;
         try {
             setIsLoading(true);
             const response = await axios.delete(BASE_URL + `delete?user_id=${user?.user_id}`)
             if (response.status === 200 && response.data) {
                 await AsyncStorage.clear();
                 setUser(null)
+                const statement = await database.prepareAsync(`DELETE FROM users WHERE user_id=?`);
+                await statement.executeAsync(user.user_id)
                 router.replace('/login')
+                setError(null)
             } else {
                 console.log(response.data)
                 setError('Delete account failed');
@@ -132,7 +138,7 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, error, login, register, logout, deleteAccount }}>
+        <AuthContext.Provider value={{ user, isLoading, error, setError, login, register, logout, deleteAccount }}>
             {children}
         </AuthContext.Provider>
     );

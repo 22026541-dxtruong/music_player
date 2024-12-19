@@ -7,9 +7,11 @@ import SongListItem from "@/components/SongListItem";
 import {useDownloadContext} from "@/context/DownloadContext";
 import {AntDesign} from "@expo/vector-icons";
 import {useFocusEffect} from "expo-router";
+import {useAuthContext} from "@/context/AuthContext";
 
 const DownloadedSongScreen = () => {
     const database = useSQLiteContext()
+    const { user } = useAuthContext()
     const { deleteFile } = useDownloadContext()
     const [data, setData] = useState<Song[]>([]);
     const [loading, setLoading] = useState(false);
@@ -17,8 +19,22 @@ const DownloadedSongScreen = () => {
     const [refreshing, setRefreshing] = useState(false);
     const fetchData = async() => {
         setLoading(true);
+        if (!user) return;
+        console.log(user)
         try {
-            const songs: Song[] = await database.getAllAsync(`SELECT * FROM songs`)
+            const songs: Song[] = await database.getAllAsync(`
+                SELECT 
+                    s.song_id,
+                    s.title,
+                    s.album_id,
+                    s.artist_id,
+                    s.image,
+                    s.file_path
+                FROM songs s 
+                JOIN user_download_song udl
+                ON s.song_id = udl.song_id
+                WHERE udl.user_id = ${user.user_id}
+            `)
             setData(songs)
         } catch (error: any) {
             setError(error)
@@ -43,7 +59,7 @@ const DownloadedSongScreen = () => {
     }
 
     const handleDelete = (song: Song) => {
-        deleteFile(song).catch(console.error);
+        if (user) deleteFile(song, user.user_id).catch(console.error);
         setData(prevData => prevData.filter(item => item.song_id !== song.song_id));
     }
 

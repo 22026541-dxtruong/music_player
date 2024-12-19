@@ -55,6 +55,7 @@ const LibraryScreen = () => {
 
     useFocusEffect(
         useCallback(() => {
+            setType(undefined)
             reFetchArtist()
             reFetchAlbum()
             reFetchPlaylist()

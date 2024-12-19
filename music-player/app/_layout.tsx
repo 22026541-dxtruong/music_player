@@ -22,6 +22,13 @@ const initializeDatabase = async (database: SQLiteDatabase) => {
                 image TEXT,
                 file_path TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS user_download_song (
+                user_id INTEGER NOT NULL,
+                song_id INTEGER NOT NULL,
+                PRIMARY KEY (user_id,song_id),
+                CONSTRAINT user_download_song_ibfk_1 FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+                CONSTRAINT user_download_song_ibfk_2 FOREIGN KEY (song_id) REFERENCES songs (song_id)
+            );
         `);
         console.log('Database initialized');
     } catch (error) {

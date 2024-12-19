@@ -7,8 +7,11 @@ import {defaultStyle} from "@/constants/styles";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import colors from "@/constants/colors";
 import {router} from "expo-router";
+import {useAudioContext} from "@/context/AudioContext";
+import {useSQLiteContext} from "expo-sqlite";
 
 const DrawerContent = () => {
+    const { stopAllAudio } = useAudioContext();
     const { user, logout, deleteAccount } = useAuthContext()
 
     return (
@@ -17,6 +20,11 @@ const DrawerContent = () => {
                 <CircleAvatar size={100} />
                 <Text style={defaultStyle.title}>{user?.username}</Text>
             </View>
+            <DrawerItem
+                icon={({size, color, focused}) => <MaterialIcons name="home" size={size} color={focused ? 'blue' : color} />}
+                label={'Home'}
+                onPress={() => router.push('/(drawer)')}
+            />
             <DrawerItem
                 icon={({size, color}) => <MaterialIcons name="download-done" size={size} color={color} />}
                 label={'Đã tải xuống'}
@@ -35,12 +43,18 @@ const DrawerContent = () => {
             <DrawerItem
                 icon={({size}) => <MaterialIcons name="delete" size={size} color={'red'} />}
                 label={() => <Text style={{color: colors.error}}>Xóa tài khoản</Text>}
-                onPress={() => deleteAccount()}
+                onPress={async () => {
+                    deleteAccount().catch(console.error);
+                    stopAllAudio().catch(console.error);
+                }}
             />
             <DrawerItem
                 icon={({size, color}) => <MaterialIcons name="logout" size={size} color={color} />}
                 label={'Đăng xuất'}
-                onPress={() => logout()}
+                onPress={() => {
+                    logout().catch(console.error);
+                    stopAllAudio().catch(console.error);
+                }}
             />
         </DrawerContentScrollView>
     );

@@ -1,6 +1,5 @@
 import * as FileSystem from 'expo-file-system';
 import { useCallback, useEffect, useState } from "react";
-import {Alert} from "react-native";
 import {useSQLiteContext} from "expo-sqlite";
 
 const downloadFolder = FileSystem.documentDirectory + 'MusicPlayer/';
@@ -14,7 +13,7 @@ const useDownload = () => {
     const [downloadResumable, setDownloadResumable] = useState<FileSystem.DownloadResumable | null>(null);
     const [isCanceled, setIsCanceled] = useState(false);
 
-    const downloadFile = useCallback(async (song: Song) => {
+    const downloadFile = useCallback(async (song: Song, userId: number) => {
         setDownloadSong(song);
         setIsDownloading(true);
         setDownloadProgress(0);
@@ -38,14 +37,19 @@ const useDownload = () => {
             const fileUri = downloadFolder + song.title;
 
             const fileExists = await FileSystem.getInfoAsync(fileUri);
+
             if (fileExists.exists) {
                 console.log("File đã tồn tại:", fileUri);
-                Alert.alert("File đã tồn tại", `Hãy kiểm tra lại ${song.title} trong thư viện của bạn`)
                 setDownloadProgress(0)
                 setDownloadSong(null)
                 setIsCanceled(true);
                 setIsDownloading(false);
                 setDownloadSong(null);
+                const insertUserDownload = await database.prepareAsync(`
+                    INSERT OR IGNORE INTO user_download_song (user_id, song_id)
+                    VALUES (?, ?)
+                `);
+                await insertUserDownload.executeAsync([userId, song.song_id]);
                 return fileUri;  // Nếu file đã tồn tại, trả về URI.
             }
 
@@ -82,8 +86,13 @@ const useDownload = () => {
             setDownloadSong(null);
             console.log('Tải xuống thành công:', result.uri);
 
-            const statement = await database.prepareAsync(`INSERT OR REPLACE INTO songs (song_id, title, album_id, artist_id, image, file_path) VALUES (?, ?, ?, ?, ?, ?)`)
+            const statement = await database.prepareAsync(`INSERT OR IGNORE INTO songs (song_id, title, album_id, artist_id, image, file_path) VALUES (?, ?, ?, ?, ?, ?)`)
             await statement.executeAsync(song.song_id, song.title, song.album_id, song.artist_id, song.image, result.uri)
+            const insertUserDownload = await database.prepareAsync(`
+                INSERT INTO user_download_song (user_id, song_id)
+                VALUES (?, ?)
+            `);
+            await insertUserDownload.executeAsync([userId, song.song_id]);
 
             return result.uri;
 
@@ -104,15 +113,18 @@ const useDownload = () => {
         }
     }, [downloadResumable]);
 
-    const deleteFile = useCallback(async (song: Song) => {
+    const deleteFile = useCallback(async (song: Song, userId: number) => {
         try {
             const fileUri = downloadFolder + song.title;
             const fileInfo = await FileSystem.getInfoAsync(fileUri);
 
             if (fileInfo.exists) {
                 await FileSystem.deleteAsync(fileUri);
-                const statement = await database.prepareAsync(`DELETE FROM songs WHERE song_id = ?`)
-                await statement.executeAsync(song.song_id)
+                const insertUserDownload = await database.prepareAsync(`
+                    DELETE FROM user_download_song 
+                    WHERE user_id=? AND song_id=?;
+                `);
+                await insertUserDownload.executeAsync([userId, song.song_id]);
                 console.log(`Đã xóa file: ${fileUri}`);
             } else {
                 console.log('File không tồn tại.');

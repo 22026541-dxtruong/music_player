@@ -63,7 +63,6 @@ func SearchAll(w http.ResponseWriter, r *http.Request) {
             })
         }
     }
-
     if searchType == "" || searchType == "song" {
         // Tìm kiếm song và thêm vào kết quả
         rowsSongs, err := db.DB.Query("SELECT song_id, title, album_id, artist_id, created_at, file_path, image FROM song WHERE title LIKE ? ORDER BY title ASC", "%"+query+"%")
@@ -73,10 +72,10 @@ func SearchAll(w http.ResponseWriter, r *http.Request) {
         }
         defer rowsSongs.Close()
 
-        api := utils.GetAPIUrlAndPort()
+        api := utils.GetAPIHostAndPort()
         for rowsSongs.Next() {
             var song models.Song
-            if err := rowsSongs.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
+            if err := rowsSongs.Scan(&song.SongID, &song.Title, &song.AlbumID, &song.ArtistID, &song.CreatedAt, &song.FilePath, &song.Image); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
             }

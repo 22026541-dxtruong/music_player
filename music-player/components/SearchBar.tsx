@@ -70,7 +70,7 @@ const SearchBar = ({type, visible, onClose}: Props) => {
         setHistory(prev => [item, ...prev.filter(i => JSON.stringify(i) !== JSON.stringify(item))]);
     }
 
-    const { data, loading } = useFetch<SearchResultItem[] | null>(BASE_URL + `search?query=${query}` + (type ? `&type=${type}` : ''))
+    const { data, loading } = useFetch<SearchResultItem[]>(BASE_URL + `search?query=${query}` + (type ? `&type=${type}` : ''))
 
     const renderItem = (item: SearchResultItem, onPress?: () => void) => {
         if (item.type === 'song') return <SongListItem song={(item.data as Song)} onPress={onPress} />
