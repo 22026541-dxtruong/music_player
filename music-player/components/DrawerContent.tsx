@@ -8,7 +8,6 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import colors from "@/constants/colors";
 import {router} from "expo-router";
 import {useAudioContext} from "@/context/AudioContext";
-import {useSQLiteContext} from "expo-sqlite";
 
 const DrawerContent = () => {
     const { stopAllAudio } = useAudioContext();

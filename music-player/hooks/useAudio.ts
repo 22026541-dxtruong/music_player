@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Audio, AVPlaybackStatus} from "expo-av";
 import {shuffleSongList} from "@/utils/suffleSongList";
+import {bool} from "prop-types";
 
 const useAudio = () => {
     const sound = useRef<Audio.Sound | null>(null);
@@ -16,7 +17,6 @@ const useAudio = () => {
     // Danh sách bài hát đã phát
     const [playedSongs, setPlayedSongs] = useState<Song[]>([]);
     const [currentSongIndex, setCurrentSongIndex] = useState<number | null>(null);
-    const [autoNext, setIsAutoNext] = useState(false)
     const [isShuffle, setIsShuffle] = useState(false)
     const [isRepeating, setIsRepeating] = useState(false)
 
@@ -41,13 +41,12 @@ const useAudio = () => {
     }, []);
 
     useEffect(() => {
-        if (autoNext && currentSong && songList.map(item => item.song_id).includes(currentSong.song_id)) {
+        if (songList.length >= 0 && currentSong && songList.map(item => item.song_id).includes(currentSong.song_id)) {
             setSongListIndex(songList.findIndex(item => item.song_id === currentSong.song_id))
         }
-    }, [songList, currentSong, autoNext]);
+    }, [songList, currentSong]);
 
     const loadSound = useCallback(async (newSong: Song) => {
-        setCurrentSong(newSong);
         if (sound.current) {
             await sound.current.unloadAsync();
         }
@@ -59,7 +58,9 @@ const useAudio = () => {
         }
         await sound.current.loadAsync({ uri: newSong.file_path });
         const status = await sound.current.getStatusAsync();
-        newSong.duration = status.isLoaded ? status.durationMillis : 0;
+        if (status.isLoaded) {
+            setCurrentSong({...newSong, duration: status.durationMillis})
+        }
     }, []);
 
     const getCurrentPosition = useCallback(async () => {
@@ -100,7 +101,7 @@ const useAudio = () => {
     }, [loadSound]);
 
     const playNext = useCallback(async () => {
-        if (autoNext && songListIndex !== undefined && songListIndex < songList.length - 1) {
+        if (songList.length >= 0 && songListIndex !== undefined && songListIndex < songList.length - 1) {
             await play(songList[songListIndex + 1]);
             setSongListIndex(songListIndex + 1)
             return
@@ -109,10 +110,10 @@ const useAudio = () => {
             const nextSong = playedSongs[currentSongIndex + 1];
             await play(nextSong);
         }
-    }, [currentSongIndex, playedSongs, play, songList, songListIndex, autoNext]);
+    }, [currentSongIndex, playedSongs, play, songList, songListIndex]);
 
     const playPrevious = useCallback(async () => {
-        if (autoNext && songListIndex !== undefined && songListIndex > 0) {
+        if (songList.length >= 0 && songListIndex !== undefined && songListIndex > 0) {
             await play(songList[songListIndex - 1]);
             setSongListIndex(songListIndex - 1)
             return
@@ -121,7 +122,7 @@ const useAudio = () => {
             const previousSong = playedSongs[currentSongIndex - 1];
             await play(previousSong);
         }
-    }, [currentSongIndex, playedSongs, play, songList, songListIndex, autoNext]);
+    }, [currentSongIndex, playedSongs, play, songList, songListIndex]);
 
     const pause = useCallback(async () => {
         if (sound.current) {
@@ -160,7 +161,7 @@ const useAudio = () => {
     }, [isRepeating]);
 
     const handlePlaySongList = useCallback(async (data?: Song[]) => {
-        if (!autoNext && data) {
+        if (data) {
             setIsShuffle(false)
             setSongList(data)
             setSongListIndex(0)
@@ -175,8 +176,7 @@ const useAudio = () => {
             setSongList([])
             setSongListIndex(undefined)
         }
-        setIsAutoNext(prev => !prev)
-    }, [autoNext, currentSong, isPlaying, play, resume])
+    }, [currentSong, isPlaying, play, resume])
 
     const handleShuffle = useCallback(() => {
         if (isShuffle) {
@@ -198,7 +198,7 @@ const useAudio = () => {
                 // @ts-ignore
                 if (status.positionMillis >= currentSong?.duration) { // 1 second before finishing
                     setIsPlaying(isRepeating);
-                    if (autoNext && !isRepeating) {
+                    if (songList.length >= 0 && !isRepeating) {
                         await playNext();
                     }
                 }
@@ -212,7 +212,7 @@ const useAudio = () => {
                 sound.current.setOnPlaybackStatusUpdate(null);
             }
         };
-    }, [autoNext, playNext, currentSong, isRepeating]);
+    }, [songList, playNext, currentSong, isRepeating]);
 
     return useMemo(() => ({
         currentSong,
@@ -226,7 +226,6 @@ const useAudio = () => {
         isPlaying,
         getCurrentPosition,
         setPosition,
-        autoNext,
         handlePlaySongList,
         songList,
         isShuffle,
@@ -234,7 +233,7 @@ const useAudio = () => {
         songListIndex,
         isRepeating,
         stopAllAudio
-    }), [stopAllAudio, isRepeating, songListIndex, isShuffle, handleShuffle, songList, autoNext, handlePlaySongList ,currentSong, isPlaying, playNext, playPrevious, play, pause, resume, getCurrentPosition, setPosition, loading]);
+    }), [stopAllAudio, isRepeating, songListIndex, isShuffle, handleShuffle, songList, handlePlaySongList ,currentSong, isPlaying, playNext, playPrevious, play, pause, resume, getCurrentPosition, setPosition, loading]);
 };
 
 export default useAudio;

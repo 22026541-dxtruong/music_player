@@ -14,7 +14,7 @@ const RegisterScreen = () => {
     const [username, setUsername] = useState<string>('')
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
-    const { register, error, setError } = useAuthContext()
+    const { register, error } = useAuthContext()
 
     return (
         <View style={{...styles.container, paddingTop: inset.top}}>
@@ -46,7 +46,6 @@ const RegisterScreen = () => {
             <View style={styles.buttonText} >
                 <Text style={defaultStyle.title}>Đã có tài khoản?</Text>
                 <Pressable onPress={() => {
-                    setError(null)
                     router.replace('/login')
                 }}>
                     <Text style={{...defaultStyle.title, color: '#8B5DFF'}}>Login</Text>

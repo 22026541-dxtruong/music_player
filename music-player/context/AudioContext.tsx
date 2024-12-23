@@ -14,7 +14,6 @@ type AudioContextType = {
     isPlaying: boolean;
     getCurrentPosition: () => Promise<number>;
     setPosition: (position: number) => Promise<void>;
-    autoNext: boolean;
     handlePlaySongList: (data?: Song[]) => Promise<void>;
     album: Album | undefined;
     setAlbum: React.Dispatch<React.SetStateAction<Album | undefined>>;

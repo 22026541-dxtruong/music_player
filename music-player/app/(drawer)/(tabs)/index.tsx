@@ -85,7 +85,8 @@ const HomeScreen = () => {
                     />
                 }
                 <Text style={{...defaultStyle.title, paddingVertical: 10}}>Made for you</Text>
-                <View style={styles.artistContainer}>
+                {!suggestSongs && !suggestArtists && !suggestAlbums && <Text style={{...defaultStyle.title, paddingVertical: 10, textAlign:'center', textAlignVertical: 'center'}}>Hãy khám phá các bài hát yêu thích của bạn!</Text>}
+                {(suggestArtists && suggestArtists.length >= 0) && <View style={styles.artistContainer}>
                     <View style={styles.artist}>
                         <Text style={defaultStyle.title}>Artists</Text>
                         <Pressable onPress={() => router.push("/artists")}><Text style={styles.text}>See all</Text></Pressable>
@@ -103,8 +104,8 @@ const HomeScreen = () => {
                             }
                         />
                     }
-                </View>
-                <View style={styles.artistContainer}>
+                </View>}
+                {(suggestAlbums && suggestAlbums.length >= 0) && <View style={styles.artistContainer}>
                     <View style={styles.artist}>
                         <Text style={defaultStyle.title}>Albums</Text>
                         <Pressable onPress={() => router.push("/albums")}><Text style={styles.text}>See all</Text></Pressable>
@@ -122,21 +123,23 @@ const HomeScreen = () => {
                             }
                         />
                     }
-                </View>
-                <Text style={{...defaultStyle.title, paddingBottom: 10}}>Songs</Text>
-                {loadingSuggestSongs ?
-                    <ActivityIndicator size={'large'} color={'blue'} /> :
-                    <FlatList
-                        data={suggestSongs}
-                        keyExtractor={(item) => item.song_id.toString()}
-                        ItemSeparatorComponent={() => <View style={{height: 10}} />}
-                        showsVerticalScrollIndicator={false}
-                        scrollEnabled={false}
-                        renderItem={({item}) =>
-                            <SongListItem song={item} />
-                        }
-                    />
-                }
+                </View>}
+                {(suggestSongs && suggestSongs.length >= 0) && <>
+                    <Text style={{...defaultStyle.title, paddingBottom: 10}}>Songs</Text>
+                    {loadingSuggestSongs ?
+                        <ActivityIndicator size={'large'} color={'blue'} /> :
+                        <FlatList
+                            data={suggestSongs}
+                            keyExtractor={(item) => item.song_id.toString()}
+                            ItemSeparatorComponent={() => <View style={{height: 10}} />}
+                            showsVerticalScrollIndicator={false}
+                            scrollEnabled={false}
+                            renderItem={({item}) =>
+                                <SongListItem song={item} />
+                            }
+                        />
+                    }
+                </>}
             </ScrollView>
             <FloatingPlayer/>
         </View>

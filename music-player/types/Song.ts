@@ -5,5 +5,5 @@ type Song = {
     artist_id: number;
     file_path: string;
     duration?: number;
-    image: string
+    image: string;
 }

@@ -220,3 +220,64 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
+
+// func ChangePassword(w http.ResponseWriter, r *http.Request) {
+// 	if r.Method != http.MethodPost {
+// 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+// 		return
+// 	}
+
+// 	var request struct {
+// 		UserID      int    `json:"user_id"`
+// 		OldPassword string `json:"old_password"`
+// 		NewPassword string `json:"new_password"`
+// 	}
+
+// 	// Decode the request body to get user details
+// 	err := json.NewDecoder(r.Body).Decode(&request)
+// 	if err != nil {
+// 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	// Get user from database
+// 	var user models.User
+// 	query := `SELECT user_id, username, email, password FROM user WHERE user_id = ?`
+// 	err = db.DB.QueryRow(query, request.UserID).Scan(&user.UserID, &user.Username, &user.Email, &user.Password)
+// 	if err != nil {
+// 		if err == sql.ErrNoRows {
+// 			http.Error(w, "User not found", http.StatusNotFound)
+// 		} else {
+// 			http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		}
+// 		return
+// 	}
+
+// 	// Compare the old password
+// 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.OldPassword))
+// 	if err != nil {
+// 		http.Error(w, "Invalid old password", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	// Hash the new password
+// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.DefaultCost)
+// 	if err != nil {
+// 		http.Error(w, "Error hashing new password", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	// Update the password in the database
+// 	query = `UPDATE user SET password = ? WHERE user_id = ?`
+// 	_, err = db.DB.Exec(query, hashedPassword, request.UserID)
+// 	if err != nil {
+// 		http.Error(w, "Error updating password", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	// Respond with success
+// 	response := map[string]string{"message": "Password updated successfully"}
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusOK)
+// 	json.NewEncoder(w).Encode(response)
+// }

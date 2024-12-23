@@ -13,7 +13,7 @@ type AuthContextType = {
     register: (email: string, username: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     deleteAccount: () => Promise<void>;
-    setError: React.Dispatch<React.SetStateAction<string | null>>
+    changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -137,8 +137,27 @@ const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }
 
+    const changePassword = async (oldPassword: string, newPassword: string) => {
+        if (!user) return;
+        try {
+            setIsLoading(true);
+            const response = await axios.post(BASE_URL + 'change-password', {
+                user_id: Number(user.user_id),
+                old_password: oldPassword,
+                new_password: newPassword
+            })
+            console.log(response.status)
+            setError(null)
+        } catch (err) {
+            console.error(err);
+            setError('Change password failed');
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     return (
-        <AuthContext.Provider value={{ user, isLoading, error, setError, login, register, logout, deleteAccount }}>
+        <AuthContext.Provider value={{ user, isLoading, error, login, register, logout, deleteAccount, changePassword }}>
             {children}
         </AuthContext.Provider>
     );

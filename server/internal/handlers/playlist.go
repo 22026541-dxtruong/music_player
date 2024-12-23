@@ -11,7 +11,7 @@ import (
 )
 
 func GetPlaylists(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.DB.Query("SELECT playlist_id, user_id, name, created_at FROM playlist")
+	rows, err := db.DB.Query("SELECT playlist_id, user_id, name, created_at, image FROM playlist")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -21,7 +21,7 @@ func GetPlaylists(w http.ResponseWriter, r *http.Request) {
 	var playlists []models.Playlist
 	for rows.Next() {
 		var playlist models.Playlist
-		if err := rows.Scan(&playlist.PlaylistID, &playlist.UserID, &playlist.Name, &playlist.CreatedAt); err != nil {
+		if err := rows.Scan(&playlist.PlaylistID, &playlist.UserID, &playlist.Name, &playlist.CreatedAt, &playlist.Image); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -45,7 +45,7 @@ func GetPlaylistsByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DB.Query("SELECT playlist_id, name, created_at FROM playlist WHERE user_id = ?", userID)
+	rows, err := db.DB.Query("SELECT playlist_id, name, created_at, image FROM playlist WHERE user_id = ?", userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -55,7 +55,7 @@ func GetPlaylistsByUserID(w http.ResponseWriter, r *http.Request) {
 	var playlists []models.Playlist // Đảm bảo bạn đã định nghĩa model Playlist đúng cách
 	for rows.Next() {
 		var playlist models.Playlist
-		if err := rows.Scan(&playlist.PlaylistID, &playlist.Name, &playlist.CreatedAt); err != nil {
+		if err := rows.Scan(&playlist.PlaylistID, &playlist.Name, &playlist.CreatedAt, &playlist.Image); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -80,7 +80,7 @@ func GetPlaylistByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var playlist models.Playlist // Đảm bảo bạn đã định nghĩa model Playlist đúng cách
-	err = db.DB.QueryRow("SELECT playlist_id, user_id, name, created_at FROM playlist WHERE playlist_id = ?", playlistID).Scan(&playlist.PlaylistID, &playlist.UserID, &playlist.Name, &playlist.CreatedAt)
+	err = db.DB.QueryRow("SELECT playlist_id, user_id, name, created_at, image FROM playlist WHERE playlist_id = ?", playlistID).Scan(&playlist.PlaylistID, &playlist.UserID, &playlist.Name, &playlist.CreatedAt, &playlist.Image)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "playlist not found", http.StatusNotFound)
@@ -95,7 +95,7 @@ func GetPlaylistByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddSongToPlaylists(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
+	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
@@ -130,10 +130,10 @@ func AddSongToPlaylists(w http.ResponseWriter, r *http.Request) {
     	}
     }
 
-    // Trả về phản hồi thành công
-   	w.WriteHeader(http.StatusCreated)
-   	w.Header().Set("Content-Type", "application/json")
-   	json.NewEncoder(w).Encode(map[string]string{"message": "song added to playlists"})
+	// Return success response
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "song added to playlists"})
 }
 
 func CreatePlaylist(w http.ResponseWriter, r *http.Request) {
@@ -180,19 +180,19 @@ func CreatePlaylist(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSongsByPlaylistID(w http.ResponseWriter, r *http.Request) {
-    playlistIDStr := r.URL.Query().Get("playlist_id")
-    if playlistIDStr == "" {
-        http.Error(w, "playlist_id is required", http.StatusBadRequest)
-        return
-    }
+	playlistIDStr := r.URL.Query().Get("playlist_id")
+	if playlistIDStr == "" {
+		http.Error(w, "playlist_id is required", http.StatusBadRequest)
+		return
+	}
 
-    playlistID, err := strconv.Atoi(playlistIDStr)
-    if err != nil {
-        http.Error(w, "invalid playlist_id", http.StatusBadRequest)
-        return
-    }
+	playlistID, err := strconv.Atoi(playlistIDStr)
+	if err != nil {
+		http.Error(w, "invalid playlist_id", http.StatusBadRequest)
+		return
+	}
 
-    rows, err := db.DB.Query(`
+	rows, err := db.DB.Query(`
         SELECT 
             s.song_id, 
             s.title, 
@@ -208,11 +208,11 @@ func GetSongsByPlaylistID(w http.ResponseWriter, r *http.Request) {
         WHERE 
             ps.playlist_id = ?`, playlistID)
 
-    if err != nil {
-        http.Error(w, "failed to fetch songs in playlist: "+err.Error(), http.StatusInternalServerError)
-        return
-    }
-    defer rows.Close()
+	if err != nil {
+		http.Error(w, "failed to fetch songs in playlist: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
 
     var playlistSongs []models.Song
 	api := utils.GetAPIHostAndPort()
@@ -223,16 +223,16 @@ func GetSongsByPlaylistID(w http.ResponseWriter, r *http.Request) {
             return
         }
 		song.FilePath = api + song.FilePath
-        playlistSongs = append(playlistSongs, song)
-    }
+		playlistSongs = append(playlistSongs, song)
+	}
 
-    if err = rows.Err(); err != nil {
-        http.Error(w, "failed to iterate over songs: "+err.Error(), http.StatusInternalServerError)
-        return
-    }
+	if err = rows.Err(); err != nil {
+		http.Error(w, "failed to iterate over songs: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(playlistSongs)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(playlistSongs)
 }
 
 func DeletePlaylistByID(w http.ResponseWriter, r *http.Request) {
@@ -240,7 +240,7 @@ func DeletePlaylistByID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-    
+
 	playlistIDStr := r.URL.Query().Get("playlist_id")
 	if playlistIDStr == "" {
 		http.Error(w, "playlist_id is required", http.StatusBadRequest)
@@ -290,49 +290,49 @@ func DeletePlaylistByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteSongInPlaylist(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodDelete {
-   		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-   		return
-    }
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
 
-   	playlistIDStr := r.URL.Query().Get("playlist_id")
-   	songIDStr := r.URL.Query().Get("song_id")
+	playlistIDStr := r.URL.Query().Get("playlist_id")
+	songIDStr := r.URL.Query().Get("song_id")
 
-    if playlistIDStr == "" || songIDStr == "" {
-   		http.Error(w, "playlist_id and song_id are required", http.StatusBadRequest)
-   		return
-   	}
+	if playlistIDStr == "" || songIDStr == "" {
+		http.Error(w, "playlist_id and song_id are required", http.StatusBadRequest)
+		return
+	}
 
-    playlistID, err := strconv.Atoi(playlistIDStr)
-   	if err != nil {
-   		http.Error(w, "invalid playlist", http.StatusBadRequest)
-   		return
-   	}
+	playlistID, err := strconv.Atoi(playlistIDStr)
+	if err != nil {
+		http.Error(w, "invalid playlist", http.StatusBadRequest)
+		return
+	}
 
-    songID, err := strconv.Atoi(songIDStr)
-   	if err != nil {
-   		http.Error(w, "invalid song_id", http.StatusBadRequest)
-   		return
-   	}
+	songID, err := strconv.Atoi(songIDStr)
+	if err != nil {
+		http.Error(w, "invalid song_id", http.StatusBadRequest)
+		return
+	}
 
-    result, err := db.DB.Exec("DELETE FROM playlist_song WHERE playlist_id = ? AND song_id = ?", playlistID, songID)
-   	if err != nil {
-   		http.Error(w, err.Error(), http.StatusInternalServerError)
-   		return
-   	}
+	result, err := db.DB.Exec("DELETE FROM playlist_song WHERE playlist_id = ? AND song_id = ?", playlistID, songID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    rowsAffected, err := result.RowsAffected()
-   	if err != nil {
-   		http.Error(w, err.Error(), http.StatusInternalServerError)
-   		return
-   	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    if rowsAffected == 0 {
-   		http.Error(w, "song not found in playlist", http.StatusNotFound)
-   		return
-   	}
+	if rowsAffected == 0 {
+		http.Error(w, "song not found in playlist", http.StatusNotFound)
+		return
+	}
 
-    w.WriteHeader(http.StatusOK)
-   	w.Header().Set("Content-Type", "application/json")
-   	json.NewEncoder(w).Encode(map[string]string{"message": "song deleted in playlist"})
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "song deleted in playlist"})
 }

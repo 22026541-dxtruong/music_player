@@ -13,6 +13,8 @@ func RegisterRoutes() {
     http.HandleFunc("/login", handlers.Login)
     // DELETE /delete
     http.HandleFunc("/delete", handlers.DeleteAccount)
+	// POST /change-password
+	// http.HandleFunc("/change-password", handlers.ChangePassword)
 
 	//GET /users
     http.HandleFunc("/users", handlers.GetUsers)

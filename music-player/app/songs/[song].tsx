@@ -18,6 +18,8 @@ import {useAuthContext} from "@/context/AuthContext";
 import SongOptions from "@/components/SongOptions";
 import AddToPlaylistModal from "@/components/AddToPlaylistModal";
 import SongListItem from "@/components/SongListItem";
+import Animated, {useAnimatedStyle, useSharedValue, withSpring, withTiming} from "react-native-reanimated";
+import {PanGestureHandler} from "react-native-gesture-handler";
 
 const SongScreen = () => {
     const {user} = useAuthContext()
@@ -157,6 +159,28 @@ const SongScreen = () => {
         });
     };
 
+    const [swipeDirection, setSwipeDirection] = useState<string | null>(null); // State to track swipe up
+
+    // Cử chỉ vuốt lên
+    const onGestureEvent = (event: { nativeEvent: { translationY: any; }; }) => {
+        const { translationY } = event.nativeEvent;
+        if (translationY < -100) { // Vuốt lên (swipe up)
+            setSwipeDirection('up');
+        } else if (translationY > 100) { // Vuốt xuống (swipe down)
+            setSwipeDirection('down');
+        }
+    };
+
+    const animatedContainerStyle = useAnimatedStyle(() => {
+        return {
+            height: withSpring(swipeDirection === 'up' ? '10%' : '60%', {
+                damping: 20,
+                stiffness: 100,
+            }),
+            flexDirection: swipeDirection === 'up' ? 'row' : 'column'
+        };
+    }, [swipeDirection]);
+
     return (
         <View style={{...defaultStyle.container, paddingTop: inset.top}}>
             <View style={styles.topAppBar}>
@@ -171,46 +195,49 @@ const SongScreen = () => {
                 </Pressable>
             </View>
             <FloatingDownload/>
+            <PanGestureHandler onGestureEvent={onGestureEvent}>
             <View
                 style={styles.contentContainer}
             >
-                <View style={styles.imageContainer}>
-                    <Image
-                        source={{uri: audioContext.currentSong?.image}}
-                        priority="normal"
-                        style={{...styles.image}}
-                        contentFit='cover'
-                    />
-                </View>
-                <View style={styles.infoAndFavorite}>
-                    <View style={styles.songAndArtist}>
-                        <Text numberOfLines={1} style={defaultStyle.title}>
-                            {audioContext.currentSong?.title}
-                        </Text>
-                        <Text numberOfLines={1} onPress={() => router.push(`/artists/${dataArtist?.artist_id}`)}
-                              style={defaultStyle.subtitle}>
-                            {dataArtist?.name}
-                        </Text>
-                    </View>
-                    <View style={styles.options}>
-                        {isDownloaded ?
-                            <Pressable onPress={() => handleDeleteDownload()}>
-                                <MaterialIcons name="file-download-off" size={24} color="red"/>
-                            </Pressable> :
-                            <Pressable onPress={() => handleDownload()}>
-                                <MaterialIcons name="file-download" size={24} color="black"/>
-                            </Pressable>
-                        }
-                        {isFavorite ?
-                            <Pressable onPress={() => handleDeleteSong()}>
-                                <MaterialIcons name="favorite" size={20} color="red"/>
-                            </Pressable> :
-                            <Pressable onPress={() => handleAddSong()}>
-                                <MaterialIcons name="favorite-border" size={20} color="black"/>
-                            </Pressable>
-                        }
-                    </View>
-                </View>
+                    <Animated.View style={[{gap: 20, height: '60%'}, audioContext.album !== undefined && animatedContainerStyle]}>
+                        <View style={[styles.imageContainer]}>
+                            <Image
+                                source={{uri: audioContext.currentSong?.image}}
+                                priority="normal"
+                                style={{...styles.image}}
+                                contentFit='cover'
+                            />
+                        </View>
+                        <View style={styles.infoAndFavorite}>
+                            <View style={styles.songAndArtist}>
+                                <Text numberOfLines={1} style={defaultStyle.title}>
+                                    {audioContext.currentSong?.title}
+                                </Text>
+                                <Text numberOfLines={1} onPress={() => router.push(`/artists/${dataArtist?.artist_id}`)}
+                                      style={defaultStyle.subtitle}>
+                                    {dataArtist?.name}
+                                </Text>
+                            </View>
+                            <View style={styles.options}>
+                                {isDownloaded ?
+                                    <Pressable onPress={() => handleDeleteDownload()}>
+                                        <MaterialIcons name="file-download-off" size={24} color="red"/>
+                                    </Pressable> :
+                                    <Pressable onPress={() => handleDownload()}>
+                                        <MaterialIcons name="file-download" size={24} color="black"/>
+                                    </Pressable>
+                                }
+                                {isFavorite ?
+                                    <Pressable onPress={() => handleDeleteSong()}>
+                                        <MaterialIcons name="favorite" size={20} color="red"/>
+                                    </Pressable> :
+                                    <Pressable onPress={() => handleAddSong()}>
+                                        <MaterialIcons name="favorite-border" size={20} color="black"/>
+                                    </Pressable>
+                                }
+                            </View>
+                        </View>
+                    </Animated.View>
                 <Slider
                     style={styles.slider}
                     minimumValue={0}
@@ -262,6 +289,7 @@ const SongScreen = () => {
                     )}
                 />}
             </View>
+            </PanGestureHandler>
             <SongOptions addPlaylist={toggleAddPlaylist} artist={dataArtist} song={audioContext.currentSong}
                          visible={showSongOptions} onClose={toggleSongOptions}/>
             <AddToPlaylistModal visible={showAddPlaylist} onClose={toggleAddPlaylist} song={audioContext.currentSong}/>
@@ -298,9 +326,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.44,
         shadowRadius: 10,
         elevation: 5,
-        flexDirection: 'row',
-        justifyContent: "center",
-        height: '50%',
+        flex: 1,
     },
     image: {
         width: '100%',
@@ -317,6 +343,7 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         justifyContent: "space-between",
         gap: 5,
+        maxWidth: '50%'
     },
     options: {
         flexDirection: "row",

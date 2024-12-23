@@ -17,3 +17,6 @@ force-version:
 
 version:
 	go run db/migrate.go -version
+
+create-migration:
+	migrate create -ext sql -dir db/migrations -seq $(name)

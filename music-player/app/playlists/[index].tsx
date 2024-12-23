@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react'
+import React, {useCallback, useEffect, useMemo, useState} from 'react'
 import {ActivityIndicator, Alert, Animated, FlatList, Pressable, StyleSheet, View} from 'react-native'
 import useFetch from "@/hooks/useFetch";
 import {BASE_URL} from "@/constants/constants";
@@ -12,6 +12,7 @@ import SongListItem from "@/components/SongListItem";
 import SearchBar from "@/components/SearchBar";
 import FloatingPlayer from "@/components/FloatingPlayer";
 import {useFocusEffect, useLocalSearchParams, useNavigation} from "expo-router";
+import useSearch from "@/hooks/useSearch";
 
 const PlaylistScreen = () => {
     const { index } = useLocalSearchParams<{ index: string }>()
@@ -31,6 +32,18 @@ const PlaylistScreen = () => {
             // header: () => null
         })
     }, [data])
+
+    const search = useSearch({
+        searchBarOptions: {
+            placeholder: 'Find in playlist',
+        }
+    });
+
+    const filteredTracks = useMemo(() => {
+        if (!search) return data ?? [];
+        const searchLower = search.toLowerCase();
+        return data ? data.filter(track => track.title.toLowerCase().includes(searchLower)) : [];
+    }, [data, search]);
 
     const [isSearching, setIsSearching] = useState(false)
 
@@ -73,9 +86,8 @@ const PlaylistScreen = () => {
                 <ActivityIndicator style={{flex: 1}} size={"large"} color={"blue"} />
             ) : (
                 <FlatList
-                    data={data}
+                    data={filteredTracks}
                     keyExtractor={(item) => item.song_id.toString()}
-                    scrollEnabled={false}
                     renderItem={({item}) =>
                         <Swipeable
                             childrenContainerStyle={{backgroundColor: colors.background}}

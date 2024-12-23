@@ -18,7 +18,7 @@ import {useAudioContext} from "@/context/AudioContext";
 const AlbumScreen = () => {
     const {album: albumId} = useLocalSearchParams<{ album: string }>()
     const { user } = useAuthContext()
-    const { album, setAlbum, handlePlaySongList, isShuffle, handleShuffle, songList, currentSong } = useAudioContext()
+    const { album, setAlbum, handlePlaySongList, isShuffle, handleShuffle, songList, currentSong} = useAudioContext()
     const { data: dataAlbum } = useFetch<Album>(BASE_URL + `albums/by_id?album_id=${albumId}`)
     const { data: dataArtist } = useFetch<Artist>(BASE_URL + `artists/by_id?artist_id=${dataAlbum?.artist_id}`)
     const { data: dataSongs, loading: loadingSongs, error: errorSongs } = useFetch<Song[]>(BASE_URL + `songs/by_album?album_id=${albumId}`)
@@ -33,16 +33,17 @@ const AlbumScreen = () => {
         setAllowShuffle(
             !(currentSong &&
                 !songList.map(item => item.song_id).includes(currentSong?.song_id) ||
-                album === undefined)
+                album === undefined) && isPlaying
         )
     }, [album, currentSong, songList]);
 
     const playAlbum = () => {
-        handlePlaySongList(dataSongs ?? []).catch(console.error)
         if (isPlaying) {
             setAlbum(undefined)
+            handlePlaySongList().catch(console.error)
         } else {
             setAlbum(dataAlbum)
+            handlePlaySongList(dataSongs).catch(console.error)
         }
         setIsPlaying(prev => !prev)
     }
@@ -100,7 +101,7 @@ const AlbumScreen = () => {
 
     return (
         <View style={{...defaultStyle.container}}>
-            <View style={styles.header}>
+            {(!search) && <View style={styles.header}>
                 <Image
                     style={styles.image}
                     source={{uri: dataAlbum?.image}}
@@ -111,7 +112,7 @@ const AlbumScreen = () => {
                     <Text style={{...defaultStyle.header, color: 'white', width: '100%'}} numberOfLines={1}>{dataAlbum?.title || "Unknown Title"}</Text>
                     <Text style={defaultStyle.subtitle} onPress={() => router.push(`/artists/${dataAlbum?.artist_id}`)} numberOfLines={1}>{dataArtist?.name || "Unknown Artist"}</Text>
                 </View>
-            </View>
+            </View>}
             <View style={styles.option}>
                 { isFavorite ?
                     <Pressable style={{...styles.editArtist, borderColor: 'red'}} onPress={() => handleDeleteAlbum()}>
@@ -125,12 +126,12 @@ const AlbumScreen = () => {
                 }
                 <View style={styles.activeOption}>
                     <Pressable
-                        onPress={handleShuffle}
+                        onPress={() => handleShuffle()}
                         disabled={!allowShuffle}
                     >
                         <FontAwesome6 name="shuffle" size={20} color={allowShuffle ? (isShuffle ? "#8B5DFF" : "black") : "gray"} />
                     </Pressable>
-                    <Pressable onPress={playAlbum}>
+                    <Pressable onPress={() => playAlbum()}>
                         <FontAwesome6 name={isPlaying ? "pause" : "play"} size={24} color={isPlaying ? "#8B5DFF" : "black"}/>
                     </Pressable>
                 </View>

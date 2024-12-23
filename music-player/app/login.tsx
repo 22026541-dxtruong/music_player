@@ -13,7 +13,7 @@ const LoginScreen = () => {
     const inset = useSafeAreaInsets()
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
-    const { login, error, setError } = useAuthContext()
+    const { login, error } = useAuthContext()
 
     return (
         <View style={{...styles.container, paddingTop: inset.top}}>
@@ -39,7 +39,6 @@ const LoginScreen = () => {
             <View style={styles.buttonText} >
                 <Text style={defaultStyle.title}>Chưa có tài khoản?</Text>
                 <Pressable onPress={() => {
-                    setError(null)
                     router.replace('/register')
                 }}>
                     <Text style={{...defaultStyle.title, color: '#8B5DFF'}}>Register</Text>
