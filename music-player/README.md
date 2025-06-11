@@ -4,13 +4,20 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
-1. Install dependencies
+1. **Server URL Configuration**  
+   Open the file constants/constants.ts and add your server's BASE_URL.
+   Example: 
+   ```ts
+   export const BASE_URL = 'http://192.168.42.195:8080/';
+   ```
+
+2. Install dependencies
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. Start the app
 
    ```bash
     npx expo start

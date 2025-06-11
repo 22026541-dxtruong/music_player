@@ -29,7 +29,7 @@
    API_HOST=http://192.168.1.100  # Địa chỉ IP hoặc URL của máy chủ API, ví dụ: http://192.168.1.100.
    ```
 
-4. Chạy migration để tạo cơ sở dữ liệu và bảng:
+4. Chạy migration để tạo cơ sở dữ liệu, bảng và thêm dữ liệu:
     ```bash
     go run db/migrate.go
     ```
