@@ -17,10 +17,4 @@ Chưa rõ cách ứng dụng hoạt động? Đừng lo, dưới đây là ảnh
   <img src="musicplayer.webp" alt="Video Demo" style="max-width: 100%; height: auto;">
 </div>
 
-## 🛠️ Hướng Dẫn Cài Đặt
-
-1. **Tải ứng dụng**: Chỉ cần tải xuống và cài đặt trên thiết bị của bạn.
-2. **Mở ứng dụng**: Sau khi cài đặt, mở ứng dụng và bắt đầu thưởng thức âm nhạc ngay lập tức.
-3. **Thêm nhạc vào playlist**: Bạn có thể dễ dàng thêm nhạc từ thư viện vào danh sách phát.
-
 ---
