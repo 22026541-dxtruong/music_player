@@ -11,12 +11,9 @@ Chào mừng bạn đến với **Music Player** - ứng dụng nghe nhạc đư
 
 ## 🎬 Xem Video Demo
 
-Chưa rõ cách ứng dụng hoạt động? Đừng lo, dưới đây là video demo giúp bạn hình dung rõ hơn về trải nghiệm người dùng với **Music Player**:
+Chưa rõ cách ứng dụng hoạt động? Đừng lo, dưới đây là ảnh động demo giúp bạn hình dung rõ hơn về trải nghiệm người dùng với **Music Player**:
 
-<video width="640" height="360" controls>
-  <source src="musicplayer.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Video Demo](musicplayer.webp)
 
 ## 🛠️ Hướng Dẫn Cài Đặt
 
