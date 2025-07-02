@@ -13,15 +13,4 @@ Chào mừng bạn đến với **Music Player** - ứng dụng nghe nhạc đư
 
 Chưa rõ cách ứng dụng hoạt động? Đừng lo, dưới đây là video demo giúp bạn hình dung rõ hơn về trải nghiệm người dùng với **Music Player**:
 
-<video width="640" height="360" controls>
-  <source src="musicplayer.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-
-## 🛠️ Hướng Dẫn Cài Đặt
-
-1. **Tải ứng dụng**: Chỉ cần tải xuống và cài đặt trên thiết bị của bạn.
-2. **Mở ứng dụng**: Sau khi cài đặt, mở ứng dụng và bắt đầu thưởng thức âm nhạc ngay lập tức.
-3. **Thêm nhạc vào playlist**: Bạn có thể dễ dàng thêm nhạc từ thư viện vào danh sách phát.
-
----
+[Xem demo tại đây](https://22026541-dxtruong.github.io/music_player/)
